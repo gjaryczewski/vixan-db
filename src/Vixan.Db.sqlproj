@@ -3,11 +3,17 @@
   <Sdk Name="Microsoft.Build.Sql" Version="1.0.0" />
   <PropertyGroup>
     <Name>Vixan.Db</Name>
+    <ProjectGuid>{4554556A-D14B-49BD-8E0C-63D5547351E3}</ProjectGuid>
     <DSP>Microsoft.Data.Tools.Schema.Sql.Sql160DatabaseSchemaProvider</DSP>
     <ModelCollation>1033, CI</ModelCollation>
+    <RunSqlCodeAnalysis>True</RunSqlCodeAnalysis>
   </PropertyGroup>
 
-<PropertyGroup>
+  <PropertyGroup>
     <SuppressTSqlWarnings>71502</SuppressTSqlWarnings>
-</PropertyGroup>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PostDeploy Include="PostDeploy.sql" />
+  </ItemGroup>
 </Project>
