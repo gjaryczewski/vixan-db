@@ -1,7 +1,7 @@
 CREATE PROCEDURE dbo.LogError
-    @ProcessId int NULL,
-    @ThreadId int NULL,
-    @OperationId int NULL,
+    @ProcessId int = NULL,
+    @ThreadId int = NULL,
+    @OperationId int = NULL,
     @ErrorId int = NULL OUTPUT AS
 SET XACT_ABORT, NOCOUNT ON
 BEGIN TRY

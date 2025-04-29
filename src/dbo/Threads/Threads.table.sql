@@ -1,6 +1,6 @@
 CREATE TABLE dbo.Threads (
     Id int NOT NULL IDENTITY,
-    StartTime datetime NOT NULL,
+    StartTime datetime NULL,
     StopTime datetime NULL,
     [Status] varchar(12) NOT NULL,
     ProcessId int NOT NULL,
@@ -12,22 +12,19 @@ CREATE TABLE dbo.Threads (
     CHECK ([Status] <> 'SCHEDULED'
         OR [Status] = 'SCHEDULED'
             AND StartTime IS NULL
-            AND StopTime IS NULL
-            AND ProcessId IS NULL),
+            AND StopTime IS NULL),
 
     CONSTRAINT CH_Threads_Status_Started
     CHECK ([Status] <> 'STARTED'
         OR [Status] = 'STARTED'
             AND StartTime IS NOT NULL
-            AND StopTime IS NULL
-            AND ProcessId IS NOT NULL),
+            AND StopTime IS NULL),
 
     CONSTRAINT CH_Threads_Status_Stopped
     CHECK ([Status] <> 'STOPPED'
         OR [Status] = 'STOPPED'
             AND StartTime IS NOT NULL
-            AND StopTime IS NOT NULL
-            AND ProcessId IS NOT NULL),
+            AND StopTime IS NOT NULL),
 
     CONSTRAINT PK_Threads PRIMARY KEY (Id)
 );

@@ -5,7 +5,7 @@ CREATE TABLE dbo.Operations (
     StopTime datetime NULL,
     [Status] varchar(12) NOT NULL,
     ThreadId int NULL,
-    ProcessId int NULL,
+    ProcessId int NOT NULL,
     SessionId int NULL,
 
     CONSTRAINT CH_Operations_Status
@@ -17,7 +17,6 @@ CREATE TABLE dbo.Operations (
             AND StartTime IS NULL
             AND StopTime IS NULL
             AND ThreadId IS NULL
-            AND ProcessId IS NULL
             AND SessionId IS NULL),
 
     CONSTRAINT CH_Operations_Status_Started
@@ -26,7 +25,6 @@ CREATE TABLE dbo.Operations (
             AND StartTime IS NOT NULL
             AND StopTime IS NULL
             AND ThreadId IS NOT NULL
-            AND ProcessId IS NOT NULL
             AND SessionId IS NOT NULL),
 
     CONSTRAINT CH_Operations_Status_Stopped
@@ -35,7 +33,6 @@ CREATE TABLE dbo.Operations (
             AND StartTime IS NOT NULL
             AND StopTime IS NOT NULL
             AND ThreadId IS NOT NULL
-            AND ProcessId IS NOT NULL
             AND SessionId IS NOT NULL),
 
     CONSTRAINT PK_Operations PRIMARY KEY (Id)
