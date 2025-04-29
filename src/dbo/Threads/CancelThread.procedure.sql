@@ -1,0 +1,67 @@
+CREATE PROCEDURE dbo.CancelThread
+    @ThreadId int AS
+SET XACT_ABORT, NOCOUNT ON
+BEGIN TRY
+    IF NOT EXISTS (SELECT * FROM dbo.Processes WHERE [Status] = 'STARTED')
+        THROW 50001, 'No process is currently started.', 1;
+
+    IF NOT EXISTS (SELECT * FROM dbo.Threads WHERE Id = @ThreadId)
+        THROW 50002, 'There is no thread with the given Id.', 1;
+
+    IF EXISTS (SELECT * FROM dbo.Threads WHERE Id = @ThreadId AND [Status] IN ('STOPPED', 'CANCELED'))
+        THROW 50003, 'The thread is already stopped or canceled.', 1;
+
+    UPDATE dbo.Threads
+        SET [Status] = 'CANCELING'
+        WHERE Id = @ThreadId;
+
+    INSERT dbo.ThreadLog (ThreadId, [Status])
+        VALUES (@ThreadId, 'CANCELING');
+
+    DECLARE @StartedOperationId int = 0;
+    DECLARE @StartedOperationCount int = (
+        SELECT COUNT(*)
+        FROM dbo.Operations
+        WHERE ThreadId = @ThreadId
+            AND [Status] = 'STARTED');
+    DECLARE @I int = 0; 
+    WHILE @StartedOperationId IS NOT NULL AND @I < @StartedOperationCount
+    BEGIN
+        SET @StartedOperationId = (
+            SELECT TOP(1) Id
+            FROM dbo.Operations
+            WHERE ThreadId = @ThreadId
+                AND [Status] = 'STARTED'
+                AND Id > @StartedOperationId
+            ORDER BY Id ASC);
+
+        IF @StartedOperationId IS NOT NULL
+            EXECUTE dbo.CancelOperation @StartedOperationId;
+
+        SET @i += 1;
+    END
+
+WAITING_LOOP:
+
+    IF EXISTS (SELECT * FROM dbo.Operations WHERE ThreadId = @ThreadId AND [Status] = 'CANCELING')
+    BEGIN
+        INSERT dbo.ThreadLog (ThreadId, [Status])
+            VALUES (@ThreadId, 'CANCELING');
+
+        WAITFOR DELAY '00:00:03';
+
+        GOTO WAITING_LOOP;
+    END
+
+    UPDATE dbo.Threads
+        SET [Status] = 'CANCELED'
+        WHERE Id = @ThreadId;
+
+    INSERT dbo.ThreadLog (ThreadId, [Status])
+        VALUES (@ThreadId, 'CANCELED');
+END TRY
+BEGIN CATCH
+   IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION;
+   EXECUTE dbo.LogError @ThreadId = @ThreadId;
+   RETURN 1;
+END CATCH
