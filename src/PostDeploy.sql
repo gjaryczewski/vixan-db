@@ -40,7 +40,9 @@ BEGIN
 '        FROM src.Test', @T, CHAR(10),
 '        WHERE Id > @Offset;', CHAR(10),
 CHAR(10),
-'    SET @Offset = ISNULL((SELECT MAX(Id) FROM dst.Test', @T, '), 0)', CHAR(10),
+'    WAITFOR DELAY ''00:00:01'';', CHAR(10),
+CHAR(10),
+'    SET @Offset = (SELECT MAX(Id) FROM dst.Test', @T, ' WHERE Id > @Offset);', CHAR(10),
 'END');
         INSERT dbo.Scripts (ScriptName, ScriptCode, SeqNum)
             VALUES (CONCAT('COPY_TEST', @T), @Script, @T + 1);
