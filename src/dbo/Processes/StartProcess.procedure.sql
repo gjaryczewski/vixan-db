@@ -9,13 +9,11 @@ BEGIN TRY
     IF (@ThreadsNum < 1 OR @ThreadsNum > 64)
         THROW 50002, 'The number of threads to be scheduled must be selected from the range of 1 to 64.', 1;
 
-    INSERT dbo.Processes ([Status])
-        VALUES ('STARTING');
+    INSERT dbo.Processes ([Status]) VALUES ('STARTING');
 
     SET @ProcessId = SCOPE_IDENTITY();
 
-    INSERT dbo.ProcessLog (ProcessId, [Status])
-        VALUES (@ProcessId, 'STARTING');
+    INSERT dbo.ProcessLog (ProcessId, [Status]) VALUES (@ProcessId, 'STARTING');
 
     INSERT dbo.Operations (ProcessId, ScriptName, [Status])
         SELECT @ProcessId, ScriptName, 'SCHEDULED'
@@ -26,12 +24,9 @@ BEGIN TRY
         SELECT @ProcessId, 'SCHEDULED'
         FROM GENERATE_SERIES(1, @ThreadsNum);
 
-    UPDATE dbo.Processes
-        SET [Status] = 'STARTED'
-        WHERE Id = @ProcessId;
+    UPDATE dbo.Processes SET [Status] = 'STARTED' WHERE ProcessId = @ProcessId;
 
-    INSERT dbo.ProcessLog (ProcessId, [Status])
-        VALUES (@ProcessId, 'STARTED');
+    INSERT dbo.ProcessLog (ProcessId, [Status]) VALUES (@ProcessId, 'STARTED');
 END TRY
 BEGIN CATCH
    IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION;

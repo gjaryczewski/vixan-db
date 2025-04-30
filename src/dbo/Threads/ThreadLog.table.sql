@@ -1,5 +1,5 @@
 CREATE TABLE dbo.ThreadLog (
-    Id int NOT NULL IDENTITY,
+    ThreadLogId int NOT NULL IDENTITY,
     LogTime datetime NOT NULL
         CONSTRAINT DF_ThreadLog_LogTime DEFAULT GETUTCDATE(),
 
@@ -11,7 +11,7 @@ CREATE TABLE dbo.ThreadLog (
     UserHost  nvarchar(128) NULL
         CONSTRAINT DF_ThreadLog_UserHost DEFAULT HOST_NAME(),
 
-    CONSTRAINT PK_ThreadLog PRIMARY KEY (Id)
+    CONSTRAINT PK_ThreadLog PRIMARY KEY (ThreadLogId)
     WITH (OPTIMIZE_FOR_SEQUENTIAL_KEY = ON)
 );
 GO

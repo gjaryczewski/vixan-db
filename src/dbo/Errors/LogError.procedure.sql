@@ -2,7 +2,7 @@ CREATE PROCEDURE dbo.LogError
     @ProcessId int = NULL,
     @ThreadId int = NULL,
     @OperationId int = NULL,
-    @ErrorId int = NULL OUTPUT AS
+    @ErrorLogId int = NULL OUTPUT AS
 SET XACT_ABORT, NOCOUNT ON
 BEGIN TRY
     DECLARE @ProcedureName nvarchar(128) = ERROR_PROCEDURE();
@@ -11,9 +11,9 @@ BEGIN TRY
     DECLARE @ErrorMessage nvarchar(4000) = ERROR_MESSAGE();
 
     IF @OperationId IS NOT NULL AND @ThreadId IS NULL
-        SET @ThreadId = (SELECT TOP(1) ThreadId FROM dbo.Operations WHERE Id = @OperationId);
+        SET @ThreadId = (SELECT TOP(1) ThreadId FROM dbo.Operations WHERE OperationId = @OperationId);
     IF @ThreadId IS NOT NULL AND @ProcessId IS NULL
-        SET @ProcessId = (SELECT TOP(1) ProcessId FROM dbo.Threads WHERE Id = @ThreadId);
+        SET @ProcessId = (SELECT TOP(1) ProcessId FROM dbo.Threads WHERE ThreadId = @ThreadId);
 
     INSERT dbo.ErrorLog (
         ProcessId,
@@ -33,7 +33,7 @@ BEGIN TRY
         @ErrorMessage
     );
 
-    SET @ErrorId = SCOPE_IDENTITY();
+    SET @ErrorLogId = SCOPE_IDENTITY();
 END TRY
 BEGIN CATCH
     IF XACT_STATE() = -1 ROLLBACK TRANSACTION;

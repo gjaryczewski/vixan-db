@@ -1,5 +1,5 @@
 CREATE VIEW dbo.CurrentErrors AS
-    SELECT Id,
+    SELECT ErrorLogId,
         LogTime,
         ProcessId,
         OperationId,
@@ -12,5 +12,5 @@ CREATE VIEW dbo.CurrentErrors AS
         UserHost
     FROM dbo.ErrorLog
     WHERE ProcessId = (
-            SELECT TOP(1) Id FROM dbo.Processes WHERE [Status] = 'STARTED'
+            SELECT TOP(1) ProcessId FROM dbo.Processes WHERE [Status] = 'STARTED'
         );

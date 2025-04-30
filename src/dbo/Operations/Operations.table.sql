@@ -1,5 +1,5 @@
 CREATE TABLE dbo.Operations (
-    Id int NOT NULL IDENTITY,
+    OperationId int NOT NULL IDENTITY,
     ScriptName nvarchar(128) NOT NULL,
     StartTime datetime NULL,
     StopTime datetime NULL,
@@ -35,7 +35,7 @@ CREATE TABLE dbo.Operations (
             AND ThreadId IS NOT NULL
             AND SessionId IS NOT NULL),
 
-    CONSTRAINT PK_Operations PRIMARY KEY (Id)
+    CONSTRAINT PK_Operations PRIMARY KEY (OperationId)
 );
 GO
 CREATE INDEX IX_Operations_ThreadId_Include ON dbo.Operations (ThreadId ASC)

@@ -1,5 +1,5 @@
 CREATE VIEW dbo.CurrentOperations AS
-    SELECT Id,
+    SELECT OperationId,
         ScriptName,
         StartTime,
         StopTime,
@@ -9,5 +9,5 @@ CREATE VIEW dbo.CurrentOperations AS
         SessionId
     FROM dbo.Operations
     WHERE ProcessId = (
-            SELECT TOP(1) Id FROM dbo.Processes WHERE [Status] = 'STARTED'
+            SELECT TOP(1) ProcessId FROM dbo.Processes WHERE [Status] = 'STARTED'
         );

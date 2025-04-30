@@ -4,14 +4,12 @@ BEGIN TRY
     IF NOT EXISTS (SELECT * FROM dbo.Processes WHERE [Status] = 'STARTED')
         THROW 50001, 'No process is currently started.', 1;
 
-    DECLARE @ProcessId int = (SELECT TOP(1) Id FROM dbo.Processes WHERE [Status] = 'STARTED');
+    DECLARE @ProcessId int = (
+        SELECT TOP(1) ProcessId FROM dbo.Processes WHERE [Status] = 'STARTED');
 
-    UPDATE dbo.Processes
-        SET [Status] = 'CANCELING'
-        WHERE Id = @ProcessId;
+    UPDATE dbo.Processes SET [Status] = 'CANCELING' WHERE ProcessId = @ProcessId;
 
-    INSERT dbo.ProcessLog (ProcessId, [Status])
-        VALUES (@ProcessId, 'CANCELING');
+    INSERT dbo.ProcessLog (ProcessId, [Status]) VALUES (@ProcessId, 'CANCELING');
 
     DECLARE @ThreadId int = 0;
     DECLARE @ThreadCount int = (SELECT COUNT(*) FROM dbo.Threads WHERE ProcessId = @ProcessId);
@@ -19,12 +17,12 @@ BEGIN TRY
     WHILE @ThreadId IS NOT NULL AND @I < @ThreadCount
     BEGIN
         SET @ThreadId = (
-            SELECT TOP(1) Id
+            SELECT TOP(1) ThreadId
             FROM dbo.Threads
             WHERE ProcessId = @ProcessId
-                AND Id > @ThreadId
+                AND ThreadId > @ThreadId
                 AND [Status] IN ('SCHEDULED', 'STARTED')
-            ORDER BY Id ASC);
+            ORDER BY ThreadId ASC);
 
         IF @ThreadId IS NOT NULL
             EXECUTE dbo.CancelThread @ThreadId;
@@ -42,12 +40,12 @@ BEGIN TRY
     WHILE @ScheduledOperationId IS NOT NULL AND @I < @ScheduledOperationCount
     BEGIN
         SET @ScheduledOperationId = (
-            SELECT TOP(1) Id
+            SELECT TOP(1) OperationId
             FROM dbo.Operations
             WHERE ProcessId = @ProcessId
                 AND [Status] = 'SCHEDULED'
-                AND Id > @ScheduledOperationId
-            ORDER BY Id ASC);
+                AND OperationId > @ScheduledOperationId
+            ORDER BY OperationId ASC);
 
         IF @ScheduledOperationId IS NOT NULL
             EXECUTE dbo.CancelOperation @ScheduledOperationId;
@@ -59,8 +57,7 @@ WAITING_LOOP:
 
     IF EXISTS (SELECT * FROM dbo.Threads WHERE ProcessId = @ProcessId AND [Status] = 'CANCELING')
     BEGIN
-        INSERT dbo.ProcessLog (ProcessId, [Status])
-            VALUES (@ProcessId, 'CANCELING');
+        INSERT dbo.ProcessLog (ProcessId, [Status]) VALUES (@ProcessId, 'CANCELING');
 
         WAITFOR DELAY '00:00:30';
 
@@ -69,20 +66,16 @@ WAITING_LOOP:
 
     IF EXISTS (SELECT * FROM dbo.Operations WHERE ProcessId = @ProcessId AND [Status] = 'CANCELING')
     BEGIN
-        INSERT dbo.ProcessLog (ProcessId, [Status])
-            VALUES (@ProcessId, 'CANCELING');
+        INSERT dbo.ProcessLog (ProcessId, [Status]) VALUES (@ProcessId, 'CANCELING');
 
         WAITFOR DELAY '00:00:30';
 
         GOTO WAITING_LOOP;
     END
 
-    UPDATE dbo.Processes
-        SET [Status] = 'CANCELED'
-        WHERE Id = @ProcessId;
+    UPDATE dbo.Processes SET [Status] = 'CANCELED' WHERE ProcessId = @ProcessId;
 
-    INSERT dbo.ProcessLog (ProcessId, [Status])
-        VALUES (@ProcessId, 'CANCELED');
+    INSERT dbo.ProcessLog (ProcessId, [Status]) VALUES (@ProcessId, 'CANCELED');
 END TRY
 BEGIN CATCH
    IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION;

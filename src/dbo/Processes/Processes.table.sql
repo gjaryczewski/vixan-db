@@ -1,5 +1,5 @@
 CREATE TABLE dbo.Processes (
-    Id int NOT NULL IDENTITY,
+    ProcessId int NOT NULL IDENTITY,
     StartTime datetime NOT NULL
         CONSTRAINT DF_Processes_StartTime DEFAULT GETUTCDATE(),
     StopTime datetime NULL,
@@ -14,7 +14,7 @@ CREATE TABLE dbo.Processes (
         OR [Status] = 'STOPPED'
             AND StopTime IS NOT NULL),
 
-    CONSTRAINT PK_Processes PRIMARY KEY (Id)
+    CONSTRAINT PK_Processes PRIMARY KEY (ProcessId)
 );
 GO
 CREATE UNIQUE INDEX IX_Processes_Status_Started ON dbo.Processes ([Status])

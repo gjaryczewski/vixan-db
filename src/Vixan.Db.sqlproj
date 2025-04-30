@@ -6,7 +6,6 @@
     <ProjectGuid>{4554556A-D14B-49BD-8E0C-63D5547351E3}</ProjectGuid>
     <DSP>Microsoft.Data.Tools.Schema.Sql.Sql160DatabaseSchemaProvider</DSP>
     <ModelCollation>1033, CI</ModelCollation>
-    <RunSqlCodeAnalysis>True</RunSqlCodeAnalysis>
   </PropertyGroup>
 
   <PropertyGroup>

@@ -1,5 +1,5 @@
 CREATE TABLE dbo.Threads (
-    Id int NOT NULL IDENTITY,
+    ThreadId int NOT NULL IDENTITY,
     StartTime datetime NULL,
     StopTime datetime NULL,
     [Status] varchar(12) NOT NULL,
@@ -26,7 +26,7 @@ CREATE TABLE dbo.Threads (
             AND StartTime IS NOT NULL
             AND StopTime IS NOT NULL),
 
-    CONSTRAINT PK_Threads PRIMARY KEY (Id)
+    CONSTRAINT PK_Threads PRIMARY KEY (ThreadId)
 );
 GO
 CREATE INDEX IX_Threads_ProcessId ON dbo.Threads (ProcessId ASC)

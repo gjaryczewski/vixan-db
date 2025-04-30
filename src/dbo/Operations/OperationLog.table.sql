@@ -1,5 +1,5 @@
 CREATE TABLE dbo.OperationLog (
-    Id int NOT NULL IDENTITY,
+    OperationLogId int NOT NULL IDENTITY,
     LogTime datetime NOT NULL
         CONSTRAINT DF_OperationLog_LogTime DEFAULT GETUTCDATE(),
 
@@ -11,7 +11,7 @@ CREATE TABLE dbo.OperationLog (
     UserHost  nvarchar(128) NULL
         CONSTRAINT DF_OperationLog_UserHost DEFAULT HOST_NAME(),
 
-    CONSTRAINT PK_OperationLog PRIMARY KEY (Id)
+    CONSTRAINT PK_OperationLog PRIMARY KEY (OperationLogId)
     WITH (OPTIMIZE_FOR_SEQUENTIAL_KEY = ON)
 );
 GO

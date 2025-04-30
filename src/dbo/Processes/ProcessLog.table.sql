@@ -1,5 +1,5 @@
 CREATE TABLE dbo.ProcessLog (
-    Id int NOT NULL IDENTITY,
+    ProcessLogId int NOT NULL IDENTITY,
     LogTime datetime NOT NULL
         CONSTRAINT DF_ProcessLog_LogTime DEFAULT GETUTCDATE(),
 
@@ -11,7 +11,7 @@ CREATE TABLE dbo.ProcessLog (
     UserHost  nvarchar(128) NULL
         CONSTRAINT DF_ProcessLog_UserHost DEFAULT HOST_NAME(),
 
-    CONSTRAINT PK_ProcessLog PRIMARY KEY (Id)
+    CONSTRAINT PK_ProcessLog PRIMARY KEY (ProcessLogId)
     WITH (OPTIMIZE_FOR_SEQUENTIAL_KEY = ON)
 );
 GO

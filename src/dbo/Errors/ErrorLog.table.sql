@@ -1,5 +1,5 @@
 CREATE TABLE dbo.ErrorLog (
-    Id int NOT NULL IDENTITY,
+    ErrorLogId int NOT NULL IDENTITY,
     LogTime datetime NOT NULL
         CONSTRAINT DF_ErrorLog_LogTime DEFAULT GETUTCDATE(),
 
@@ -16,7 +16,7 @@ CREATE TABLE dbo.ErrorLog (
     UserHost  nvarchar(128) NULL
         CONSTRAINT DF_ErrorLog_UserHost DEFAULT HOST_NAME(),
 
-    CONSTRAINT PK_ErrorLog PRIMARY KEY (Id)
+    CONSTRAINT PK_ErrorLog PRIMARY KEY (ErrorLogId)
     WITH (OPTIMIZE_FOR_SEQUENTIAL_KEY = ON)
 );
 GO
