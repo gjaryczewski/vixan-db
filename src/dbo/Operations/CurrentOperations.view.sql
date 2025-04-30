@@ -2,7 +2,7 @@ CREATE VIEW dbo.CurrentOperations AS
     SELECT OperationId,
         ScriptName,
         StartTime,
-        StopTime,
+        CompleteTime,
         [Status],
         ThreadId,
         ProcessId,

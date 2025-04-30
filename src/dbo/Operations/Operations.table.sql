@@ -2,20 +2,20 @@ CREATE TABLE dbo.Operations (
     OperationId int NOT NULL IDENTITY,
     ScriptName nvarchar(128) NOT NULL,
     StartTime datetime NULL,
-    StopTime datetime NULL,
+    CompleteTime datetime NULL,
     [Status] varchar(12) NOT NULL,
     ThreadId int NULL,
     ProcessId int NOT NULL,
     SessionId int NULL,
 
     CONSTRAINT CH_Operations_Status
-    CHECK ([Status] IN ('SCHEDULED', 'STARTED', 'STOPPED', 'CANCELED')),
+    CHECK ([Status] IN ('PLANNED', 'STARTED', 'COMPLETED', 'TERMINATED')),
 
-    CONSTRAINT CH_Operations_Status_Scheduled
-    CHECK ([Status] <> 'SCHEDULED'
-        OR [Status] = 'SCHEDULED'
+    CONSTRAINT CH_Operations_Status_Planned
+    CHECK ([Status] <> 'PLANNED'
+        OR [Status] = 'PLANNED'
             AND StartTime IS NULL
-            AND StopTime IS NULL
+            AND CompleteTime IS NULL
             AND ThreadId IS NULL
             AND SessionId IS NULL),
 
@@ -23,15 +23,15 @@ CREATE TABLE dbo.Operations (
     CHECK ([Status] <> 'STARTED'
         OR [Status] = 'STARTED'
             AND StartTime IS NOT NULL
-            AND StopTime IS NULL
+            AND CompleteTime IS NULL
             AND ThreadId IS NOT NULL
             AND SessionId IS NOT NULL),
 
-    CONSTRAINT CH_Operations_Status_Stopped
-    CHECK ([Status] <> 'STOPPED'
-        OR [Status] = 'STOPPED'
+    CONSTRAINT CH_Operations_Status_Completed
+    CHECK ([Status] <> 'COMPLETED'
+        OR [Status] = 'COMPLETED'
             AND StartTime IS NOT NULL
-            AND StopTime IS NOT NULL
+            AND CompleteTime IS NOT NULL
             AND ThreadId IS NOT NULL
             AND SessionId IS NOT NULL),
 

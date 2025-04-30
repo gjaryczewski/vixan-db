@@ -21,7 +21,7 @@ BEGIN TRY
             SessionId = @@SPID,
             StartTime = GETUTCDATE()
         WHERE OperationId = @OperationId
-            AND [Status] = 'SCHEDULED';
+            AND [Status] = 'PLANNED';
 
     IF @@ROWCOUNT = 0
         THROW 50004, 'The operation is not available to start.', 1;
@@ -37,15 +37,15 @@ BEGIN TRY
     EXECUTE (@ScriptCode);
 
     UPDATE dbo.Operations
-        SET [Status] = 'STOPPED',
-            StopTime = GETUTCDATE()
+        SET [Status] = 'COMPLETED',
+            CompleteTime = GETUTCDATE()
         WHERE OperationId = @OperationId
         AND [Status] = 'STARTED';
 
     IF @@ROWCOUNT = 0
-        THROW 50006, 'The operation is not available to stop.', 1;
+        THROW 50006, 'The operation is not available to complete.', 1;
 
-    INSERT dbo.OperationLog (OperationId, [Status]) VALUES (@OperationId, 'STOPPED');
+    INSERT dbo.OperationLog (OperationId, [Status]) VALUES (@OperationId, 'COMPLETED');
 END TRY
 BEGIN CATCH
    IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION;

@@ -13,7 +13,7 @@ BEGIN TRY
             ProcessId = @ProcessId,
             StartTime = GETUTCDATE()
         WHERE ThreadId = @ThreadId
-            AND [Status] = 'SCHEDULED';
+            AND [Status] = 'PLANNED';
 
     IF @@ROWCOUNT = 0
         THROW 50002, 'The thread is not available to start.', 1;

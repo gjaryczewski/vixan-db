@@ -16,12 +16,12 @@ BEGIN TRY
     INSERT dbo.ProcessLog (ProcessId, [Status]) VALUES (@ProcessId, 'STARTING');
 
     INSERT dbo.Operations (ProcessId, ScriptName, [Status])
-        SELECT @ProcessId, ScriptName, 'SCHEDULED'
+        SELECT @ProcessId, ScriptName, 'PLANNED'
         FROM dbo.Scripts
         ORDER BY SeqNum ASC, ScriptName ASC;
 
     INSERT dbo.Threads (ProcessId, [Status])
-        SELECT @ProcessId, 'SCHEDULED'
+        SELECT @ProcessId, 'PLANNED'
         FROM GENERATE_SERIES(1, @ThreadsNum);
 
     UPDATE dbo.Processes SET [Status] = 'STARTED' WHERE ProcessId = @ProcessId;

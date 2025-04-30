@@ -1,7 +1,7 @@
 CREATE VIEW dbo.CurrentThreads AS
     SELECT ThreadId,
         StartTime,
-        StopTime,
+        CompleteTime,
         [Status]
     FROM dbo.Threads
     WHERE ProcessId = (

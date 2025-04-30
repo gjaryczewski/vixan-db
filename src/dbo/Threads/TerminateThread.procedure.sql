@@ -1,4 +1,4 @@
-CREATE PROCEDURE dbo.CancelThread
+CREATE PROCEDURE dbo.TerminateThread
     @ThreadId int AS
 SET XACT_ABORT, NOCOUNT ON
 BEGIN TRY
@@ -8,15 +8,15 @@ BEGIN TRY
     IF NOT EXISTS (SELECT * FROM dbo.Threads WHERE ThreadId = @ThreadId)
         THROW 50002, 'There is no thread with the given identifier.', 1;
 
-    IF EXISTS (SELECT * FROM dbo.Threads WHERE ThreadId = @ThreadId AND [Status] IN ('STOPPED', 'CANCELED'))
-        THROW 50003, 'The thread is already stopped or canceled.', 1;
+    IF EXISTS (SELECT * FROM dbo.Threads WHERE ThreadId = @ThreadId AND [Status] IN ('COMPLETED', 'TERMINATED'))
+        THROW 50003, 'The thread is already completed or terminated.', 1;
 
     UPDATE dbo.Threads
-        SET [Status] = 'CANCELING'
+        SET [Status] = 'TERMINATING'
         WHERE ThreadId = @ThreadId;
 
     INSERT dbo.ThreadLog (ThreadId, [Status])
-        VALUES (@ThreadId, 'CANCELING');
+        VALUES (@ThreadId, 'TERMINATING');
 
     DECLARE @StartedOperationId int = 0;
     DECLARE @StartedOperationCount int = (
@@ -36,25 +36,25 @@ BEGIN TRY
             ORDER BY OperationId ASC);
 
         IF @StartedOperationId IS NOT NULL
-            EXECUTE dbo.CancelOperation @StartedOperationId;
+            EXECUTE dbo.TerminateOperation @StartedOperationId;
 
         SET @i += 1;
     END
 
 WAITING_LOOP:
 
-    IF EXISTS (SELECT * FROM dbo.Operations WHERE ThreadId = @ThreadId AND [Status] = 'CANCELING')
+    IF EXISTS (SELECT * FROM dbo.Operations WHERE ThreadId = @ThreadId AND [Status] = 'TERMINATING')
     BEGIN
-        INSERT dbo.ThreadLog (ThreadId, [Status]) VALUES (@ThreadId, 'CANCELING');
+        INSERT dbo.ThreadLog (ThreadId, [Status]) VALUES (@ThreadId, 'TERMINATING');
 
         WAITFOR DELAY '00:00:03';
 
         GOTO WAITING_LOOP;
     END
 
-    UPDATE dbo.Threads SET [Status] = 'CANCELED' WHERE ThreadId = @ThreadId;
+    UPDATE dbo.Threads SET [Status] = 'TERMINATED' WHERE ThreadId = @ThreadId;
 
-    INSERT dbo.ThreadLog (ThreadId, [Status]) VALUES (@ThreadId, 'CANCELED');
+    INSERT dbo.ThreadLog (ThreadId, [Status]) VALUES (@ThreadId, 'TERMINATED');
 END TRY
 BEGIN CATCH
    IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION;

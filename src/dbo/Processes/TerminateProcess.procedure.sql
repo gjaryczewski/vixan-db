@@ -1,4 +1,4 @@
-CREATE PROCEDURE dbo.CancelProcess AS
+CREATE PROCEDURE dbo.TerminateProcess AS
 SET XACT_ABORT, NOCOUNT ON
 BEGIN TRY
     IF NOT EXISTS (SELECT * FROM dbo.Processes WHERE [Status] = 'STARTED')
@@ -7,9 +7,9 @@ BEGIN TRY
     DECLARE @ProcessId int = (
         SELECT TOP(1) ProcessId FROM dbo.Processes WHERE [Status] = 'STARTED');
 
-    UPDATE dbo.Processes SET [Status] = 'CANCELING' WHERE ProcessId = @ProcessId;
+    UPDATE dbo.Processes SET [Status] = 'TERMINATING' WHERE ProcessId = @ProcessId;
 
-    INSERT dbo.ProcessLog (ProcessId, [Status]) VALUES (@ProcessId, 'CANCELING');
+    INSERT dbo.ProcessLog (ProcessId, [Status]) VALUES (@ProcessId, 'TERMINATING');
 
     DECLARE @ThreadId int = 0;
     DECLARE @ThreadCount int = (SELECT COUNT(*) FROM dbo.Threads WHERE ProcessId = @ProcessId);
@@ -21,61 +21,61 @@ BEGIN TRY
             FROM dbo.Threads
             WHERE ProcessId = @ProcessId
                 AND ThreadId > @ThreadId
-                AND [Status] IN ('SCHEDULED', 'STARTED')
+                AND [Status] IN ('PLANNED', 'STARTED')
             ORDER BY ThreadId ASC);
 
         IF @ThreadId IS NOT NULL
-            EXECUTE dbo.CancelThread @ThreadId;
+            EXECUTE dbo.TerminateThread @ThreadId;
 
         SET @i += 1;
     END
 
-    DECLARE @ScheduledOperationId int = 0;
-    DECLARE @ScheduledOperationCount int = (
+    DECLARE @PlannedOperationId int = 0;
+    DECLARE @PlannedOperationCount int = (
         SELECT COUNT(*)
         FROM dbo.Operations
         WHERE ProcessId = @ProcessId
-            AND [Status] = 'SCHEDULED');
+            AND [Status] = 'PLANNED');
     SET @I = 0; 
-    WHILE @ScheduledOperationId IS NOT NULL AND @I < @ScheduledOperationCount
+    WHILE @PlannedOperationId IS NOT NULL AND @I < @PlannedOperationCount
     BEGIN
-        SET @ScheduledOperationId = (
+        SET @PlannedOperationId = (
             SELECT TOP(1) OperationId
             FROM dbo.Operations
             WHERE ProcessId = @ProcessId
-                AND [Status] = 'SCHEDULED'
-                AND OperationId > @ScheduledOperationId
+                AND [Status] = 'PLANNED'
+                AND OperationId > @PlannedOperationId
             ORDER BY OperationId ASC);
 
-        IF @ScheduledOperationId IS NOT NULL
-            EXECUTE dbo.CancelOperation @ScheduledOperationId;
+        IF @PlannedOperationId IS NOT NULL
+            EXECUTE dbo.TerminateOperation @PlannedOperationId;
 
         SET @i += 1;
     END
 
 WAITING_LOOP:
 
-    IF EXISTS (SELECT * FROM dbo.Threads WHERE ProcessId = @ProcessId AND [Status] = 'CANCELING')
+    IF EXISTS (SELECT * FROM dbo.Threads WHERE ProcessId = @ProcessId AND [Status] = 'TERMINATING')
     BEGIN
-        INSERT dbo.ProcessLog (ProcessId, [Status]) VALUES (@ProcessId, 'CANCELING');
+        INSERT dbo.ProcessLog (ProcessId, [Status]) VALUES (@ProcessId, 'TERMINATING');
 
         WAITFOR DELAY '00:00:30';
 
         GOTO WAITING_LOOP;
     END
 
-    IF EXISTS (SELECT * FROM dbo.Operations WHERE ProcessId = @ProcessId AND [Status] = 'CANCELING')
+    IF EXISTS (SELECT * FROM dbo.Operations WHERE ProcessId = @ProcessId AND [Status] = 'TERMINATING')
     BEGIN
-        INSERT dbo.ProcessLog (ProcessId, [Status]) VALUES (@ProcessId, 'CANCELING');
+        INSERT dbo.ProcessLog (ProcessId, [Status]) VALUES (@ProcessId, 'TERMINATING');
 
         WAITFOR DELAY '00:00:30';
 
         GOTO WAITING_LOOP;
     END
 
-    UPDATE dbo.Processes SET [Status] = 'CANCELED' WHERE ProcessId = @ProcessId;
+    UPDATE dbo.Processes SET [Status] = 'TERMINATED' WHERE ProcessId = @ProcessId;
 
-    INSERT dbo.ProcessLog (ProcessId, [Status]) VALUES (@ProcessId, 'CANCELED');
+    INSERT dbo.ProcessLog (ProcessId, [Status]) VALUES (@ProcessId, 'TERMINATED');
 END TRY
 BEGIN CATCH
    IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION;
