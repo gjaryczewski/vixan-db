@@ -1,5 +1,5 @@
 CREATE PROCEDURE dbo.StartThread
-    @ThreadId int AS
+    @ThreadId int = null OUT AS
 SET XACT_ABORT, NOCOUNT ON
 BEGIN TRY
     IF NOT EXISTS (SELECT * FROM dbo.Processes WHERE [Status] = 'STARTED')
@@ -8,15 +8,9 @@ BEGIN TRY
     DECLARE @ProcessId int = (
         SELECT TOP(1) ProcessId FROM dbo.Processes WHERE [Status] = 'STARTED');
 
-    UPDATE dbo.Threads
-        SET [Status] = 'STARTED',
-            ProcessId = @ProcessId,
-            StartTime = GETUTCDATE()
-        WHERE ThreadId = @ThreadId
-            AND [Status] = 'PLANNED';
+    INSERT dbo.Threads (ProcessId, [Status]) VALUES (@ProcessId, 'STARTED');
 
-    IF @@ROWCOUNT = 0
-        THROW 50002, 'The thread is not available to start.', 1;
+    SET @ThreadId = SCOPE_IDENTITY();
 
     INSERT dbo.ThreadLog (ThreadId, [Status]) VALUES (@ThreadId, 'STARTED');
 END TRY
