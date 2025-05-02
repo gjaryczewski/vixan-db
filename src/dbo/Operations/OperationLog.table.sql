@@ -6,9 +6,9 @@ CREATE TABLE dbo.OperationLog (
     OperationId int NOT NULL,
     [Status] varchar(12) NOT NULL,
 
-    UserLogin nvarchar(128) NULL
+    UserLogin nvarchar(128) NOT NULL
         CONSTRAINT DF_OperationLog_UserLogin DEFAULT SYSTEM_USER,
-    UserHost  nvarchar(128) NULL
+    UserHost  nvarchar(128) NOT NULL
         CONSTRAINT DF_OperationLog_UserHost DEFAULT HOST_NAME(),
 
     CONSTRAINT PK_OperationLog PRIMARY KEY (OperationLogId)

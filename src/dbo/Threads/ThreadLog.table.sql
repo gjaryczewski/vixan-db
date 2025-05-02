@@ -6,9 +6,9 @@ CREATE TABLE dbo.ThreadLog (
     ThreadId int NOT NULL,
     [Status] varchar(12) NOT NULL,
 
-    UserLogin nvarchar(128) NULL
+    UserLogin nvarchar(128) NOT NULL
         CONSTRAINT DF_ThreadLog_UserLogin DEFAULT SYSTEM_USER,
-    UserHost  nvarchar(128) NULL
+    UserHost  nvarchar(128) NOT NULL
         CONSTRAINT DF_ThreadLog_UserHost DEFAULT HOST_NAME(),
 
     CONSTRAINT PK_ThreadLog PRIMARY KEY (ThreadLogId)

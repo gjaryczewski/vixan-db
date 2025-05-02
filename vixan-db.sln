@@ -5,6 +5,8 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vixan.Db", "src\Vixan.Db.sqlproj", "{F4301D70-027F-4133-B3E5-31CAB005A9FC}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vixan.Db.Test", "test\Vixan.Db.Test.csproj", "{4D67B587-87CC-4F1F-B088-1AC6438DFD11}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -18,5 +20,9 @@ Global
 		{F4301D70-027F-4133-B3E5-31CAB005A9FC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F4301D70-027F-4133-B3E5-31CAB005A9FC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F4301D70-027F-4133-B3E5-31CAB005A9FC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4D67B587-87CC-4F1F-B088-1AC6438DFD11}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4D67B587-87CC-4F1F-B088-1AC6438DFD11}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4D67B587-87CC-4F1F-B088-1AC6438DFD11}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4D67B587-87CC-4F1F-B088-1AC6438DFD11}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

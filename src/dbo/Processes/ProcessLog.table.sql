@@ -6,9 +6,9 @@ CREATE TABLE dbo.ProcessLog (
     ProcessId int NOT NULL,
     [Status] varchar(12) NOT NULL,
 
-    UserLogin nvarchar(128) NULL
+    UserLogin nvarchar(128) NOT NULL
         CONSTRAINT DF_ProcessLog_UserLogin DEFAULT SYSTEM_USER,
-    UserHost  nvarchar(128) NULL
+    UserHost  nvarchar(128) NOT NULL
         CONSTRAINT DF_ProcessLog_UserHost DEFAULT HOST_NAME(),
 
     CONSTRAINT PK_ProcessLog PRIMARY KEY (ProcessLogId)

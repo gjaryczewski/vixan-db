@@ -7,13 +7,13 @@ CREATE TABLE dbo.ErrorLog (
     ThreadId int NULL,
     OperationId int NULL,
     ProcedureName nvarchar(128) NULL,
-    LineNum int NULL,
-    ErrorNum int NULL,
-    ErrorMessage nvarchar(4000),
+    LineNum int NOT NULL,
+    ErrorNum int NOT NULL,
+    ErrorMessage nvarchar(4000) NOT NULL,
 
-    UserLogin nvarchar(128) NULL
+    UserLogin nvarchar(128) NOT NULL
         CONSTRAINT DF_ErrorLog_UserLogin DEFAULT SYSTEM_USER,
-    UserHost  nvarchar(128) NULL
+    UserHost  nvarchar(128) NOT NULL
         CONSTRAINT DF_ErrorLog_UserHost DEFAULT HOST_NAME(),
 
     CONSTRAINT PK_ErrorLog PRIMARY KEY (ErrorLogId)
