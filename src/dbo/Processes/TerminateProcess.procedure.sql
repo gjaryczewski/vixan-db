@@ -11,21 +11,21 @@ BEGIN TRY
 
     INSERT dbo.ProcessLog (ProcessId, [Status]) VALUES (@ProcessId, 'TERMINATING');
 
-    DECLARE @ThreadId int = 0;
-    DECLARE @ThreadCount int = (SELECT COUNT(*) FROM dbo.Threads WHERE ProcessId = @ProcessId);
+    DECLARE @WorkerId int = 0;
+    DECLARE @WorkerCount int = (SELECT COUNT(*) FROM dbo.Workers WHERE ProcessId = @ProcessId);
     DECLARE @I int = 0; 
-    WHILE @ThreadId IS NOT NULL AND @I < @ThreadCount
+    WHILE @WorkerId IS NOT NULL AND @I < @WorkerCount
     BEGIN
-        SET @ThreadId = (
-            SELECT TOP(1) ThreadId
-            FROM dbo.Threads
+        SET @WorkerId = (
+            SELECT TOP(1) WorkerId
+            FROM dbo.Workers
             WHERE ProcessId = @ProcessId
-                AND ThreadId > @ThreadId
+                AND WorkerId > @WorkerId
                 AND [Status] IN ('PLANNED', 'STARTED')
-            ORDER BY ThreadId ASC);
+            ORDER BY WorkerId ASC);
 
-        IF @ThreadId IS NOT NULL
-            EXECUTE dbo.TerminateThread @ThreadId;
+        IF @WorkerId IS NOT NULL
+            EXECUTE dbo.TerminateWorker @WorkerId;
 
         SET @i += 1;
     END
@@ -55,7 +55,7 @@ BEGIN TRY
 
 WAITING_LOOP:
 
-    IF EXISTS (SELECT * FROM dbo.Threads WHERE ProcessId = @ProcessId AND [Status] = 'TERMINATING')
+    IF EXISTS (SELECT * FROM dbo.Workers WHERE ProcessId = @ProcessId AND [Status] = 'TERMINATING')
     BEGIN
         INSERT dbo.ProcessLog (ProcessId, [Status]) VALUES (@ProcessId, 'TERMINATING');
 

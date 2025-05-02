@@ -1,12 +1,12 @@
 namespace Vixan.Db.Test.Models;
 
-public class Thread
+public class Worker
 {
-    public int ThreadId { get; set; }
+    public int WorkerId { get; set; }
 
     public DateTime StartTime { get; set; }
 
-    public DateTime? CompleteTime { get; set; }
+    public DateTime? StopTime { get; set; }
 
     public required string Status { get; set; }
 

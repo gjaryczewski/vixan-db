@@ -4,7 +4,7 @@ CREATE TABLE dbo.ErrorLog (
         CONSTRAINT DF_ErrorLog_LogTime DEFAULT GETUTCDATE(),
 
     ProcessId int NULL,
-    ThreadId int NULL,
+    WorkerId int NULL,
     OperationId int NULL,
     ProcedureName nvarchar(128) NULL,
     LineNum int NOT NULL,
@@ -24,6 +24,6 @@ CREATE INDEX IX_ErrorLog_LogTime ON dbo.ErrorLog (LogTime ASC);
 GO
 CREATE INDEX IX_ErrorLog_ProcessId ON dbo.ErrorLog (ProcessId ASC);
 GO
-CREATE INDEX IX_ErrorLog_ThreadId ON dbo.ErrorLog (ThreadId ASC);
+CREATE INDEX IX_ErrorLog_WorkerId ON dbo.ErrorLog (WorkerId ASC);
 GO
 CREATE INDEX IX_ErrorLog_OperationId ON dbo.ErrorLog (OperationId ASC);

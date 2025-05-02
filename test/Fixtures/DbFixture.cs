@@ -20,8 +20,8 @@ public static class DbFixture
         TRUNCATE TABLE dbo.Operations;
         TRUNCATE TABLE dbo.ProcessLog;
         TRUNCATE TABLE dbo.Processes;
-        TRUNCATE TABLE dbo.ThreadLog;
-        TRUNCATE TABLE dbo.Threads;
+        TRUNCATE TABLE dbo.WorkerLog;
+        TRUNCATE TABLE dbo.Workers;
 
         TRUNCATE TABLE dst.TestTable0;
         TRUNCATE TABLE dst.TestTable1;
@@ -82,13 +82,30 @@ public static class DbFixture
 		
 		var sql = since is null
             ? "SELECT * FROM dbo.ErrorLog"
-            : "SELECT * FROM dbo.ErrorLog WHERE LogTime >= @StartTime";
-		return db.Query<ErrorLogEntry>(sql, new { StartTime = since })?.ToList();
+            : "SELECT * FROM dbo.ErrorLog WHERE LogTime >= @Since";
+		return db.Query<ErrorLogEntry>(sql, new { Since = since })?.ToList();
+    }
+
+    public static List<ErrorLogEntry>? GetCurrentErrors()
+    {
+        using var db = new SqlConnection(connectionString);
+		
+		return db.Query<ErrorLogEntry>("SELECT * FROM dbo.CurrentErrors")?.ToList();
     }
 
 #endregion "Errors"
 
 #region  "Operations"
+
+    public static List<Operation>? GetOperations(DateTime? since = null)
+    {
+        using var db = new SqlConnection(connectionString);
+		
+		var sql = since is null
+            ? "SELECT * FROM dbo.Operations"
+            : "SELECT * FROM dbo.Operations WHERE StartTime >= @Since";
+		return db.Query<Operation>(sql, new { Since = since })?.ToList();
+    }
 
     public static List<OperationLogEntry>? GetOperationLog(DateTime? since = null)
     {
@@ -96,8 +113,15 @@ public static class DbFixture
 		
 		var sql = since is null
             ? "SELECT * FROM dbo.OperationLog"
-            : "SELECT * FROM dbo.OperationLog WHERE LogTime >= @StartTime";
-		return db.Query<OperationLogEntry>(sql, new { StartTime = since })?.ToList();
+            : "SELECT * FROM dbo.OperationLog WHERE LogTime >= @Since";
+		return db.Query<OperationLogEntry>(sql, new { Since = since })?.ToList();
+    }
+
+    public static List<Worker>? GetCurrentOperations()
+    {
+        using var db = new SqlConnection(connectionString);
+		
+		return db.Query<Worker>("SELECT * FROM dbo.CurrentOperations")?.ToList();
     }
 
     public static int NextOperationToRun()
@@ -107,15 +131,32 @@ public static class DbFixture
 		return db.ExecuteScalar<int>("SELECT dbo.NextOperationToRun()");
     }
 
-    public static void RunOperation(int operationId, int threadId)
+    public static void RunOperation(int operationId, int workerId)
     {
         var pars = new DynamicParameters();
         pars.Add("@OperationId", operationId, DbType.Int32);
-        pars.Add("@ThreadId", threadId, DbType.Int32);
+        pars.Add("@WorkerId", workerId, DbType.Int32);
 
         using var db = new SqlConnection(connectionString);
 		
 		db.Execute("dbo.RunOperation", pars, commandType: CommandType.StoredProcedure);
+    }
+
+    public static void TerminateOperation(int operationId)
+    {
+        var pars = new DynamicParameters();
+        pars.Add("@OperationId", operationId, DbType.Int32);
+
+        using var db = new SqlConnection(connectionString);
+		
+		db.Execute("dbo.TerminateOperation", pars, commandType: CommandType.StoredProcedure);
+    }
+
+    public static List<Script>? GetScripts()
+    {
+        using var db = new SqlConnection(connectionString);
+		
+		return db.Query<Script>("dbo.Scripts")?.ToList();
     }
 
     public static string? GetScriptCode(int operationId)
@@ -157,17 +198,34 @@ public static class DbFixture
 
 #region  "Processes"
 
+    public static List<Process>? GetProcesses(DateTime? since = null)
+    {
+        using var db = new SqlConnection(connectionString);
+		
+		var sql = since is null
+            ? "SELECT * FROM dbo.Processes"
+            : "SELECT * FROM dbo.Processes WHERE StartTime >= @Since";
+		return db.Query<Process>(sql, new { Since = since })?.ToList();
+    }
+
     public static List<ProcessLogEntry>? GetProcessLog(DateTime? since = null)
     {
         using var db = new SqlConnection(connectionString);
 		
 		var sql = since is null
             ? "SELECT * FROM dbo.ProcessLog"
-            : "SELECT * FROM dbo.ProcessLog WHERE LogTime >= @StartTime";
-		return db.Query<ProcessLogEntry>(sql, new { StartTime = since })?.ToList();
+            : "SELECT * FROM dbo.ProcessLog WHERE LogTime >= @Since";
+		return db.Query<ProcessLogEntry>(sql, new { Since = since })?.ToList();
     }
 
-    public static int StartProcess()
+    public static Process? GetCurrentProcess()
+    {
+        using var db = new SqlConnection(connectionString);
+		
+		return db.QuerySingle<Process>("SELECT * FROM dbo.CurrentProcess");
+    }
+
+    public static int? StartProcess()
     {
         var pars = new DynamicParameters();
         pars.Add("@ProcessId", null, DbType.Int32, ParameterDirection.Output);
@@ -176,35 +234,85 @@ public static class DbFixture
 		
 		db.Execute("dbo.StartProcess", pars, commandType: CommandType.StoredProcedure);
 
-        return pars.Get<int>("@ProcessId");
+        return pars.Get<int?>("@ProcessId");
+    }
+
+    public static void CompleteProcess()
+    {
+        using var db = new SqlConnection(connectionString);
+		
+		db.Execute("dbo.CompleteProcess", commandType: CommandType.StoredProcedure);
+    }
+
+    public static void TerminateProcess()
+    {
+        using var db = new SqlConnection(connectionString);
+		
+		db.Execute("dbo.TerminateProcess", commandType: CommandType.StoredProcedure);
     }
 
 #endregion "Processes"
 
-#region  "Threads"
+#region  "Workers"
 
-    public static List<ThreadLogEntry>? GetThreadLog(DateTime? since = null)
+    public static List<Worker>? GetWorkers(DateTime? since = null)
     {
         using var db = new SqlConnection(connectionString);
 		
 		var sql = since is null
-            ? "SELECT * FROM dbo.ThreadLog"
-            : "SELECT * FROM dbo.ThreadLog WHERE LogTime >= @StartTime";
-		return db.Query<ThreadLogEntry>(sql, new { StartTime = since })?.ToList();
+            ? "SELECT * FROM dbo.Workers"
+            : "SELECT * FROM dbo.Workers WHERE StartTime >= @Since";
+		return db.Query<Worker>(sql, new { Since = since })?.ToList();
     }
 
-    public static int StartThread()
+    public static List<WorkerLogEntry>? GetWorkerLog(DateTime? since = null)
+    {
+        using var db = new SqlConnection(connectionString);
+		
+		var sql = since is null
+            ? "SELECT * FROM dbo.WorkerLog"
+            : "SELECT * FROM dbo.WorkerLog WHERE LogTime >= @Since";
+		return db.Query<WorkerLogEntry>(sql, new { Since = since })?.ToList();
+    }
+
+    public static List<Worker>? GetCurrentWorkers()
+    {
+        using var db = new SqlConnection(connectionString);
+		
+		return db.Query<Worker>("SELECT * FROM dbo.CurrentWorkers")?.ToList();
+    }
+
+    public static int? StartWorker()
     {
         var pars = new DynamicParameters();
-        pars.Add("@ThreadId", null, DbType.Int32, ParameterDirection.Output);
+        pars.Add("@WorkerId", null, DbType.Int32, ParameterDirection.Output);
 
         using var db = new SqlConnection(connectionString);
 		
-		db.Execute("dbo.StartThread", pars, commandType: CommandType.StoredProcedure);
+		db.Execute("dbo.StartWorker", pars, commandType: CommandType.StoredProcedure);
 
-        return pars.Get<int?>("@ThreadId")
-            ?? throw new ArgumentException("Thread ID is unavailable as the output value.");
+        return pars.Get<int?>("@WorkerId");
     }
 
-#endregion "Threads"
+    public static void StopWorker(int workerId)
+    {
+        var pars = new DynamicParameters();
+        pars.Add("@WorkerId", workerId, DbType.Int32);
+
+        using var db = new SqlConnection(connectionString);
+		
+		db.Execute("dbo.StopWorker", pars, commandType: CommandType.StoredProcedure);
+    }
+
+    public static void TerminateWorker(int workerId)
+    {
+        var pars = new DynamicParameters();
+        pars.Add("@WorkerId", workerId, DbType.Int32);
+
+        using var db = new SqlConnection(connectionString);
+		
+		db.Execute("dbo.TerminateWorker", pars, commandType: CommandType.StoredProcedure);
+    }
+
+#endregion "Workers"
 }

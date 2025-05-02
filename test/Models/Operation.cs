@@ -12,7 +12,7 @@ public class Operation
 
     public required string Status { get; set; }
 
-    public int ThreadId { get; set; }
+    public int WorkerId { get; set; }
 
     public int ProcessId { get; set; }
 

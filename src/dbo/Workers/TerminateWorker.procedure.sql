@@ -1,28 +1,28 @@
-CREATE PROCEDURE dbo.TerminateThread
-    @ThreadId int AS
+CREATE PROCEDURE dbo.TerminateWorker
+    @WorkerId int AS
 SET XACT_ABORT, NOCOUNT ON
 BEGIN TRY
     IF NOT EXISTS (SELECT * FROM dbo.Processes WHERE [Status] = 'STARTED')
         THROW 50001, 'No process is currently started.', 1;
 
-    IF NOT EXISTS (SELECT * FROM dbo.Threads WHERE ThreadId = @ThreadId)
-        THROW 50002, 'There is no thread with the given identifier.', 1;
+    IF NOT EXISTS (SELECT * FROM dbo.Workers WHERE WorkerId = @WorkerId)
+        THROW 50002, 'There is no worker with the given identifier.', 1;
 
-    IF EXISTS (SELECT * FROM dbo.Threads WHERE ThreadId = @ThreadId AND [Status] IN ('COMPLETED', 'TERMINATED'))
-        THROW 50003, 'The thread is already completed or terminated.', 1;
+    IF EXISTS (SELECT * FROM dbo.Workers WHERE WorkerId = @WorkerId AND [Status] IN ('COMPLETED', 'TERMINATED'))
+        THROW 50003, 'The worker is already completed or terminated.', 1;
 
-    UPDATE dbo.Threads
+    UPDATE dbo.Workers
         SET [Status] = 'TERMINATING'
-        WHERE ThreadId = @ThreadId;
+        WHERE WorkerId = @WorkerId;
 
-    INSERT dbo.ThreadLog (ThreadId, [Status])
-        VALUES (@ThreadId, 'TERMINATING');
+    INSERT dbo.WorkerLog (WorkerId, [Status])
+        VALUES (@WorkerId, 'TERMINATING');
 
     DECLARE @StartedOperationId int = 0;
     DECLARE @StartedOperationCount int = (
         SELECT COUNT(*)
         FROM dbo.Operations
-        WHERE ThreadId = @ThreadId
+        WHERE WorkerId = @WorkerId
             AND [Status] = 'STARTED');
     DECLARE @I int = 0; 
     WHILE @StartedOperationId IS NOT NULL AND @I < @StartedOperationCount
@@ -30,7 +30,7 @@ BEGIN TRY
         SET @StartedOperationId = (
             SELECT TOP(1) OperationId
             FROM dbo.Operations
-            WHERE ThreadId = @ThreadId
+            WHERE WorkerId = @WorkerId
                 AND [Status] = 'STARTED'
                 AND OperationId > @StartedOperationId
             ORDER BY OperationId ASC);
@@ -43,21 +43,21 @@ BEGIN TRY
 
 WAITING_LOOP:
 
-    IF EXISTS (SELECT * FROM dbo.Operations WHERE ThreadId = @ThreadId AND [Status] = 'TERMINATING')
+    IF EXISTS (SELECT * FROM dbo.Operations WHERE WorkerId = @WorkerId AND [Status] = 'TERMINATING')
     BEGIN
-        INSERT dbo.ThreadLog (ThreadId, [Status]) VALUES (@ThreadId, 'TERMINATING');
+        INSERT dbo.WorkerLog (WorkerId, [Status]) VALUES (@WorkerId, 'TERMINATING');
 
         WAITFOR DELAY '00:00:03';
 
         GOTO WAITING_LOOP;
     END
 
-    UPDATE dbo.Threads SET [Status] = 'TERMINATED' WHERE ThreadId = @ThreadId;
+    UPDATE dbo.Workers SET [Status] = 'TERMINATED' WHERE WorkerId = @WorkerId;
 
-    INSERT dbo.ThreadLog (ThreadId, [Status]) VALUES (@ThreadId, 'TERMINATED');
+    INSERT dbo.WorkerLog (WorkerId, [Status]) VALUES (@WorkerId, 'TERMINATED');
 END TRY
 BEGIN CATCH
    IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION;
-   EXECUTE dbo.LogError @ThreadId = @ThreadId;
+   EXECUTE dbo.LogError @WorkerId = @WorkerId;
    RETURN 1;
 END CATCH

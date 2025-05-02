@@ -1,6 +1,6 @@
 CREATE PROCEDURE dbo.LogError
     @ProcessId int = NULL,
-    @ThreadId int = NULL,
+    @WorkerId int = NULL,
     @OperationId int = NULL,
     @ErrorLogId int = NULL OUTPUT AS
 SET XACT_ABORT, NOCOUNT ON
@@ -10,14 +10,14 @@ BEGIN TRY
     DECLARE @ErrorNum int = ERROR_NUMBER();
     DECLARE @ErrorMessage nvarchar(4000) = ERROR_MESSAGE();
 
-    IF @OperationId IS NOT NULL AND @ThreadId IS NULL
-        SET @ThreadId = (SELECT TOP(1) ThreadId FROM dbo.Operations WHERE OperationId = @OperationId);
-    IF @ThreadId IS NOT NULL AND @ProcessId IS NULL
-        SET @ProcessId = (SELECT TOP(1) ProcessId FROM dbo.Threads WHERE ThreadId = @ThreadId);
+    IF @OperationId IS NOT NULL AND @WorkerId IS NULL
+        SET @WorkerId = (SELECT TOP(1) WorkerId FROM dbo.Operations WHERE OperationId = @OperationId);
+    IF @WorkerId IS NOT NULL AND @ProcessId IS NULL
+        SET @ProcessId = (SELECT TOP(1) ProcessId FROM dbo.Workers WHERE WorkerId = @WorkerId);
 
     INSERT dbo.ErrorLog (
         ProcessId,
-        ThreadId,
+        WorkerId,
         OperationId,
         ProcedureName,
         LineNum,
@@ -25,7 +25,7 @@ BEGIN TRY
         ErrorMessage
     ) VALUES (
         @ProcessId,
-        @ThreadId,
+        @WorkerId,
         @OperationId,
         @ProcedureName,
         @LineNum,

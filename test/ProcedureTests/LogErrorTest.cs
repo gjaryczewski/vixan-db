@@ -72,18 +72,19 @@ public class LogErrorTest
     }
 
     [Fact]
-    public void LogError_Stores_OperationId_ThreadId_ProcessId_If_Operation_Fails()
+    public void LogError_Stores_OperationId_WorkerId_ProcessId_If_Operation_Fails()
     {
         // Arrange
         DbFixture.Reset();
         var startTime = DbFixture.GetTimeUc();
         var processId = DbFixture.StartProcess();
-        var threadId = DbFixture.StartThread();
+        var workerId = DbFixture.StartWorker();
+        Assert.NotNull(workerId);
         var operationId = DbFixture.NextOperationToRun();
         DbFixture.SetScriptCode(operationId, $"THROW 50001, 'A test error message.', 1;");
 
         // Act
-        DbFixture.RunOperation(operationId, threadId);
+        DbFixture.RunOperation(operationId, (int)workerId);
 
         // Assert
         var logEntries = DbFixture.GetErrorLog(startTime);
@@ -91,7 +92,7 @@ public class LogErrorTest
         Assert.Single(logEntries);
         var entry = logEntries.First();
         Assert.Equivalent(
-            new { OperationId = operationId, ThreadId = threadId, ProcessId = processId },
-            new { entry.OperationId, entry.ThreadId, entry.ProcessId });
+            new { OperationId = operationId, WorkerId = workerId, ProcessId = processId },
+            new { entry.OperationId, entry.WorkerId, entry.ProcessId });
     }
 }

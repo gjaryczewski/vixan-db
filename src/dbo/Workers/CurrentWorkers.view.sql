@@ -1,9 +1,9 @@
-CREATE VIEW dbo.CurrentThreads AS
-    SELECT ThreadId,
+CREATE VIEW dbo.CurrentWorkers AS
+    SELECT WorkerId,
         StartTime,
-        CompleteTime,
+        StopTime,
         [Status]
-    FROM dbo.Threads
+    FROM dbo.Workers
     WHERE ProcessId = (
             SELECT TOP(1) ProcessId FROM dbo.Processes WHERE [Status] = 'STARTED'
         );

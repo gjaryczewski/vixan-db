@@ -4,7 +4,7 @@ CREATE VIEW dbo.CurrentOperations AS
         StartTime,
         CompleteTime,
         [Status],
-        ThreadId,
+        WorkerId,
         ProcessId,
         SessionId
     FROM dbo.Operations

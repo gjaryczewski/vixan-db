@@ -10,8 +10,8 @@ BEGIN TRY
     DECLARE @ProcessId int = (
         SELECT TOP(1) ProcessId FROM dbo.Processes WHERE [Status] = 'STARTED');
 
-    IF EXISTS (SELECT * FROM dbo.Threads WHERE ProcessId = @ProcessId AND [Status] IN ('PLANNED', 'STARTED'))
-        THROW 50003, 'The process cannot be completed because some threads are scheduled or have already started.', 1;
+    IF EXISTS (SELECT * FROM dbo.Workers WHERE ProcessId = @ProcessId AND [Status] IN ('PLANNED', 'STARTED'))
+        THROW 50003, 'The process cannot be completed because some workers are scheduled or have already started.', 1;
 
     UPDATE dbo.Processes
         SET [Status] = 'COMPLETED',
@@ -20,7 +20,7 @@ BEGIN TRY
             AND [Status] = 'STARTED';
 
     IF @@ROWCOUNT = 0
-        THROW 50005, 'The process is not available to complete.', 1;
+        THROW 50005, 'The process is not ready to complete.', 1;
 
     INSERT dbo.ProcessLog (ProcessId, [Status]) VALUES (@ProcessId, 'COMPLETED');
 END TRY

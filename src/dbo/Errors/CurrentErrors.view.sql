@@ -3,7 +3,7 @@ CREATE VIEW dbo.CurrentErrors AS
         LogTime,
         ProcessId,
         OperationId,
-        ThreadId,
+        WorkerId,
         ProcedureName,
         LineNum,
         ErrorNum,

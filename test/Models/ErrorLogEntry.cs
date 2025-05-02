@@ -8,7 +8,7 @@ public class ErrorLogEntry
 
     public int? ProcessId { get; set; }
 
-    public int? ThreadId { get; set; }
+    public int? WorkerId { get; set; }
 
     public int? OperationId { get; set; }
 

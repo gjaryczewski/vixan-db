@@ -1,12 +1,12 @@
 namespace Vixan.Db.Test.Models;
 
-public class ThreadLogEntry
+public class WorkerLogEntry
 {
-    public int ThreadLogId { get; set; }
+    public int WorkerLogId { get; set; }
     
     public DateTime LogTime { get; set; }
 
-    public int ThreadId { get; set; }
+    public int WorkerId { get; set; }
 
     public required string Status { get; set; }
 

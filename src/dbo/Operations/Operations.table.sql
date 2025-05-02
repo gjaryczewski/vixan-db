@@ -4,7 +4,7 @@ CREATE TABLE dbo.Operations (
     StartTime datetime NULL,
     CompleteTime datetime NULL,
     [Status] varchar(12) NOT NULL,
-    ThreadId int NULL,
+    WorkerId int NULL,
     ProcessId int NOT NULL,
     SessionId int NULL,
 
@@ -16,7 +16,7 @@ CREATE TABLE dbo.Operations (
         OR [Status] = 'PLANNED'
             AND StartTime IS NULL
             AND CompleteTime IS NULL
-            AND ThreadId IS NULL
+            AND WorkerId IS NULL
             AND SessionId IS NULL),
 
     CONSTRAINT CH_Operations_Status_Started
@@ -24,7 +24,7 @@ CREATE TABLE dbo.Operations (
         OR [Status] = 'STARTED'
             AND StartTime IS NOT NULL
             AND CompleteTime IS NULL
-            AND ThreadId IS NOT NULL
+            AND WorkerId IS NOT NULL
             AND SessionId IS NOT NULL),
 
     CONSTRAINT CH_Operations_Status_Completed
@@ -32,13 +32,13 @@ CREATE TABLE dbo.Operations (
         OR [Status] = 'COMPLETED'
             AND StartTime IS NOT NULL
             AND CompleteTime IS NOT NULL
-            AND ThreadId IS NOT NULL
+            AND WorkerId IS NOT NULL
             AND SessionId IS NOT NULL),
 
     CONSTRAINT PK_Operations PRIMARY KEY (OperationId)
 );
 GO
-CREATE INDEX IX_Operations_ThreadId_Include ON dbo.Operations (ThreadId ASC)
+CREATE INDEX IX_Operations_WorkerId_Include ON dbo.Operations (WorkerId ASC)
     INCLUDE ([Status]);
 GO
 CREATE INDEX IX_Operations_ProcessId_Include ON dbo.Operations (ProcessId ASC);
