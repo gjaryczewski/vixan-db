@@ -222,7 +222,7 @@ public static class DbFixture
     {
         using var db = new SqlConnection(connectionString);
 		
-		return db.QuerySingle<Process>("SELECT * FROM dbo.CurrentProcess");
+		return db.QuerySingleOrDefault<Process>("SELECT * FROM dbo.CurrentProcess");
     }
 
     public static int? StartProcess()

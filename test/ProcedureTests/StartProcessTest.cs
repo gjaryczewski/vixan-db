@@ -1,6 +1,4 @@
-using System.Reflection;
 using Vixan.Db.Test.Fixtures;
-using Xunit.Sdk;
 
 namespace Vixan.Db.Test.ProcedureTests;
 
@@ -35,18 +33,17 @@ public class StartProcessTest
         // Arrange
         DbFixture.Reset();
         Assert.Empty(DbFixture.GetCurrentOperations()!);
-        var startTime = DbFixture.GetTimeUc();
 
         // Act
         var processId = DbFixture.StartProcess();
 
         // Assert
         Assert.NotNull(processId);
-        Assert.Empty(DbFixture.GetErrorLog(startTime)!);
+        Assert.Empty(DbFixture.GetCurrentErrors()!);
         var process = DbFixture.GetCurrentProcess();
         Assert.NotNull(process);
         Assert.Equal("STARTED", process.Status);
-        var logEntries = DbFixture.GetProcessLog(startTime);
+        var logEntries = DbFixture.GetProcessLog(process.StartTime);
         Assert.NotNull(logEntries);
         Assert.Equal(2, logEntries.Count);
         Assert.Collection(logEntries,
