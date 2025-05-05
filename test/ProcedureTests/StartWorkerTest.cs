@@ -3,17 +3,14 @@ using Vixan.Db.Test.Fixtures;
 namespace Vixan.Db.Test.ProcedureTests;
 
 [Collection("Sequential")]
-public class StartWorkerTest
+public class StartWorkerTest : BaseProcedureTest
 {
     [Fact]
-    public void StartWorker_Breaks_When_No_Process_Is_Started()
+    public void StartWorker_Breaks_When_No_Process_Started()
     {
         // Arrange
         DbFixture.Reset();
-        Assert.Null(DbFixture.GetCurrentProcess());
-        var workersBefore = DbFixture.GetCurrentWorkers(); 
-        Assert.NotNull(workersBefore);
-        Assert.Empty(workersBefore);
+        AssertNoCurrentProcess();
         var startTime = DbFixture.GetTimeUc();
     
         // Act
@@ -21,30 +18,17 @@ public class StartWorkerTest
 
         // Assert
         Assert.Null(workerId);
-        var logEntries = DbFixture.GetErrorLog(startTime);
-        Assert.NotNull(logEntries);
-        Assert.Single(logEntries);
-        var entry = logEntries.First();
-        Assert.Equivalent(
-            new { ProcedureName = "dbo.StartWorker" },
-            new { entry.ProcedureName });
-        var workersAfter = DbFixture.GetCurrentWorkers(); 
-        Assert.NotNull(workersAfter);
-        Assert.Empty(workersAfter);
+        AssertSingleErrorSince(startTime, "dbo.StartWorker", "No process is currently started.");
+        AssertNoCurrentWorkers();
     }
     
     [Fact]
-    public void StartWorker_Registers_New_Worker_When_Process_Is_Active()
+    public void StartWorker_Registers_Worker_When_Process_Started()
     {
         // Arrange
         DbFixture.Reset();
-        DbFixture.StartProcess();
-        var process = DbFixture.GetCurrentProcess();
-        Assert.NotNull(process);
-        Assert.Equal("STARTED", process.Status);
-        var workersBefore = DbFixture.GetCurrentWorkers(); 
-        Assert.NotNull(workersBefore);
-        Assert.Empty(workersBefore);
+        AssertProcessStarted();
+        AssertNoCurrentWorkers();
         var startTime = DbFixture.GetTimeUc();
     
         // Act
@@ -52,12 +36,28 @@ public class StartWorkerTest
 
         // Assert
         Assert.NotNull(workerId);
-        var logEntries = DbFixture.GetErrorLog(startTime);
-        Assert.NotNull(logEntries);
-        Assert.Empty(logEntries);
-        var workersAfter = DbFixture.GetCurrentWorkers(); 
-        Assert.NotNull(workersAfter);
-        Assert.Single(workersAfter);
-        Assert.Equal(workerId, workersAfter.First().WorkerId);
+        AssertNoErrorSince(startTime);
+        AssertWorkerRegistered((int)workerId);
+    }
+    
+    [Fact]
+    public void StartWorker_Can_Be_Executed_Multiple_Times()
+    {
+        // Arrange
+        DbFixture.Reset();
+        AssertProcessStarted();
+        AssertNoCurrentWorkers();
+        var workersCount = new Random().Next(3, 6);
+        var startTime = DbFixture.GetTimeUc();
+    
+        // Act
+        for (var i = 0; i < workersCount; i++)
+        {
+            _ = DbFixture.StartWorker();
+        }
+
+        // Assert
+        AssertNoErrorSince(startTime);
+        Assert.Equal(workersCount, DbFixture.GetCurrentWorkers()?.Count);
     }
 }

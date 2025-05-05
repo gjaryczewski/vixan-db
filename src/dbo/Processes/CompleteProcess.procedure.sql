@@ -1,14 +1,10 @@
 CREATE PROCEDURE dbo.CompleteProcess AS
 SET XACT_ABORT, NOCOUNT ON
 BEGIN TRY
-    IF NOT EXISTS (SELECT * FROM dbo.Processes WHERE [Status] = 'STARTED')
+    IF NOT EXISTS (SELECT * FROM dbo.CurrentProcess)
         THROW 50001, 'No process is currently started.', 1;
 
-    IF EXISTS (SELECT * FROM dbo.Processes WHERE [Status] IN ('COMPLETED', 'TERMINATED'))
-        THROW 50002, 'The process is already completed or terminated.', 1;
-
-    DECLARE @ProcessId int = (
-        SELECT TOP(1) ProcessId FROM dbo.Processes WHERE [Status] = 'STARTED');
+    DECLARE @ProcessId int = (SELECT TOP(1) ProcessId FROM dbo.CurrentProcess);
 
     IF EXISTS (SELECT * FROM dbo.Workers WHERE ProcessId = @ProcessId AND [Status] IN ('PLANNED', 'STARTED'))
         THROW 50003, 'The process cannot be completed because some workers are scheduled or have already started.', 1;

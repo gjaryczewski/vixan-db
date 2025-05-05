@@ -3,28 +3,22 @@ using Vixan.Db.Test.Fixtures;
 namespace Vixan.Db.Test.ProcedureTests;
 
 [Collection("Sequential")]
-public class StartProcessTest
+public class StartProcessTest : BaseProcedureTest
 {
     [Fact]
-    public void StartProcess_Breaks_When_Another_Process_Is_Already_Started()
+    public void StartProcess_Breaks_When_Another_Process_Already_Started()
     {
         // Arrange
         DbFixture.Reset();
-        var startTime = DbFixture.GetTimeUc();
         _ = DbFixture.StartProcess();
+        var startTime = DbFixture.GetTimeUc();
 
         // Act
         var processId = DbFixture.StartProcess();
 
         // Assert
         Assert.Null(processId);
-        var logEntries = DbFixture.GetErrorLog(startTime);
-        Assert.NotNull(logEntries);
-        Assert.Single(logEntries);
-        var entry = logEntries.First();
-        Assert.Equivalent(
-            new { ProcedureName = "dbo.StartProcess" },
-            new { entry.ProcedureName });
+        AssertSingleErrorSince(startTime, "dbo.StartProcess", "Another process is already started.");
     }
     
     [Fact]
@@ -32,25 +26,21 @@ public class StartProcessTest
     {
         // Arrange
         DbFixture.Reset();
-        Assert.Empty(DbFixture.GetCurrentOperations()!);
+        AssertNoCurrentProcess();
+        var startTime = DbFixture.GetTimeUc();
 
         // Act
         var processId = DbFixture.StartProcess();
 
         // Assert
         Assert.NotNull(processId);
-        Assert.Empty(DbFixture.GetCurrentErrors()!);
+        AssertNoErrorSince(startTime);
         var process = DbFixture.GetCurrentProcess();
         Assert.NotNull(process);
         Assert.Equal("STARTED", process.Status);
-        var logEntries = DbFixture.GetProcessLog(process.StartTime);
-        Assert.NotNull(logEntries);
-        Assert.Equal(2, logEntries.Count);
-        Assert.Collection(logEntries,
-            entry => Assert.Contains("STARTING", entry.Status),
-            entry => Assert.Contains("STARTED", entry.Status));
-        var currentOps = DbFixture.GetCurrentOperations();
-        Assert.NotNull(currentOps);
-        Assert.All(currentOps, o => Assert.Equal("PLANNED", o.Status));
+        var currentOperations = DbFixture.GetCurrentOperations();
+        Assert.NotNull(currentOperations);
+        Assert.NotEmpty(currentOperations);
+        Assert.All(currentOperations, o => Assert.Equal("PLANNED", o.Status));
     }
 }

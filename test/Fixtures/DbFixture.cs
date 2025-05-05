@@ -69,66 +69,120 @@ public static class DbFixture
 
     public static DateTime GetTimeUc()
     {
+        var sql = "SELECT GETUTCDATE()";
+
         using var db = new SqlConnection(connectionString);
 		
-        return db.ExecuteScalar<DateTime>("SELECT GETUTCDATE()");
+        return db.ExecuteScalar<DateTime>(sql);
     }
 
 #region "Errors"
 
-    public static List<ErrorLogEntry>? GetErrorLog(DateTime? since = null)
+
+    public static List<ErrorLogEntry>? GetErrorLog()
     {
+        var sql = "SELECT * FROM dbo.ErrorLog";
+
         using var db = new SqlConnection(connectionString);
 		
-		var sql = since is null
-            ? "SELECT * FROM dbo.ErrorLog"
-            : "SELECT * FROM dbo.ErrorLog WHERE LogTime >= @Since";
-		return db.Query<ErrorLogEntry>(sql, new { Since = since })?.ToList();
+		return db.Query<ErrorLogEntry>(sql)?.ToList();
+    }
+
+    public static List<ErrorLogEntry>? GetErrorLogSince(DateTime startTime)
+    {
+		var sql = "SELECT * FROM dbo.ErrorLog WHERE LogTime >= @StartTime";
+
+        var pars = new DynamicParameters();
+        pars.Add("@StartTime", startTime, DbType.DateTime);
+
+        using var db = new SqlConnection(connectionString);
+		
+		return db.Query<ErrorLogEntry>(sql, pars)?.ToList();
     }
 
     public static List<ErrorLogEntry>? GetCurrentErrors()
     {
+        var sql = "SELECT * FROM dbo.CurrentErrors";
+
         using var db = new SqlConnection(connectionString);
 		
-		return db.Query<ErrorLogEntry>("SELECT * FROM dbo.CurrentErrors")?.ToList();
+		return db.Query<ErrorLogEntry>(sql)?.ToList();
     }
 
 #endregion "Errors"
 
 #region  "Operations"
 
-    public static List<Operation>? GetOperations(DateTime? since = null)
+    public static List<Operation>? GetOperations()
     {
+        var sql = "SELECT * FROM dbo.Operations";
+    
         using var db = new SqlConnection(connectionString);
 		
-		var sql = since is null
-            ? "SELECT * FROM dbo.Operations"
-            : "SELECT * FROM dbo.Operations WHERE StartTime >= @Since";
-		return db.Query<Operation>(sql, new { Since = since })?.ToList();
+		return db.Query<Operation>(sql)?.ToList();
     }
 
-    public static List<OperationLogEntry>? GetOperationLog(DateTime? since = null)
+    public static List<Operation>? GetOperationsSince(DateTime startTime)
     {
+		var sql = "SELECT * FROM dbo.Operations WHERE StartTime >= @StartTime";
+
+        var pars = new DynamicParameters();
+        pars.Add("@StartTime", startTime, DbType.DateTime);
+
         using var db = new SqlConnection(connectionString);
 		
-		var sql = since is null
-            ? "SELECT * FROM dbo.OperationLog"
-            : "SELECT * FROM dbo.OperationLog WHERE LogTime >= @Since";
-		return db.Query<OperationLogEntry>(sql, new { Since = since })?.ToList();
+		return db.Query<Operation>(sql, pars)?.ToList();
+    }
+
+    public static Operation? GetOperation(int operationId)
+    {
+        var sql = "SELECT * FROM dbo.Operations WHERE OperationId = @OperationId";
+
+        var pars = new DynamicParameters();
+        pars.Add("@OperationId", operationId, DbType.Int32);
+
+        using var db = new SqlConnection(connectionString);
+		
+		return db.QuerySingleOrDefault<Operation>(sql, pars);
+    }
+
+    public static List<OperationLogEntry>? GetOperationLog()
+    {
+        var sql = "SELECT * FROM dbo.OperationLog";
+
+        using var db = new SqlConnection(connectionString);
+		
+		return db.Query<OperationLogEntry>(sql)?.ToList();
+    }
+
+    public static List<OperationLogEntry>? GetOperationLogSince(DateTime startTime)
+    {
+		var sql = "SELECT * FROM dbo.OperationLog WHERE LogTime >= @StartTime";
+
+        var pars = new DynamicParameters();
+        pars.Add("@StartTime", startTime, DbType.DateTime);
+
+        using var db = new SqlConnection(connectionString);
+		
+		return db.Query<OperationLogEntry>(sql, pars)?.ToList();
     }
 
     public static List<Worker>? GetCurrentOperations()
     {
+        var sql = "SELECT * FROM dbo.CurrentOperations";
+
         using var db = new SqlConnection(connectionString);
 		
-		return db.Query<Worker>("SELECT * FROM dbo.CurrentOperations")?.ToList();
+		return db.Query<Worker>(sql)?.ToList();
     }
 
     public static int NextOperationToRun()
     {
+        var sql = "SELECT dbo.NextOperationToRun()";
+
         using var db = new SqlConnection(connectionString);
 		
-		return db.ExecuteScalar<int>("SELECT dbo.NextOperationToRun()");
+		return db.ExecuteScalar<int>(sql);
     }
 
     public static void RunOperation(int operationId, int workerId)
@@ -152,77 +206,91 @@ public static class DbFixture
 		db.Execute("dbo.TerminateOperation", pars, commandType: CommandType.StoredProcedure);
     }
 
-    public static List<Script>? GetScripts()
-    {
-        using var db = new SqlConnection(connectionString);
-		
-		return db.Query<Script>("dbo.Scripts")?.ToList();
-    }
-
-    public static string? GetScriptCode(int operationId)
-    {
-        var pars = new DynamicParameters();
-        pars.Add("@OperationId", operationId, DbType.Int32);
-
-        using var db = new SqlConnection(connectionString);
-		
-		return db.ExecuteScalar<string>("""
-            SELECT TOP(1) ScriptCode
-            FROM dbo.Scripts
-            WHERE ScriptName = (
-                SELECT ScriptName
-                FROM dbo.Operations
-                WHERE OperationId = @OperationId)
-            """, pars);
-    }
-
     public static void SetScriptCode(int operationId, string scriptCode)
     {
-        var pars = new DynamicParameters();
-        pars.Add("@OperationId", operationId, DbType.Int32);
-        pars.Add("@ScriptCode", scriptCode, DbType.String);
-
-        using var db = new SqlConnection(connectionString);
-		
-		db.Execute("""
+        var sql = """
             UPDATE dbo.Scripts
             SET ScriptCode = @ScriptCode
             WHERE ScriptName = (
                 SELECT ScriptName
                 FROM dbo.Operations
                 WHERE OperationId = @OperationId)
-            """, pars);
+            """;
+
+        var pars = new DynamicParameters();
+        pars.Add("@OperationId", operationId, DbType.Int32);
+        pars.Add("@ScriptCode", scriptCode, DbType.String);
+
+        using var db = new SqlConnection(connectionString);
+		
+		db.Execute(sql, pars);
     }
 
 #endregion "Operations"
 
 #region  "Processes"
 
-    public static List<Process>? GetProcesses(DateTime? since = null)
+    public static List<Process>? GetProcesses()
     {
+        var sql = "SELECT * FROM dbo.Processes";
+
         using var db = new SqlConnection(connectionString);
 		
-		var sql = since is null
-            ? "SELECT * FROM dbo.Processes"
-            : "SELECT * FROM dbo.Processes WHERE StartTime >= @Since";
-		return db.Query<Process>(sql, new { Since = since })?.ToList();
+		return db.Query<Process>(sql)?.ToList();
     }
 
-    public static List<ProcessLogEntry>? GetProcessLog(DateTime? since = null)
+    public static List<Process>? GetProcessesSince(DateTime startTime)
     {
+		var sql = "SELECT * FROM dbo.Processes WHERE StartTime >= @StartTime";
+
+        var pars = new DynamicParameters();
+        pars.Add("@StartTime", startTime, DbType.DateTime);
+
         using var db = new SqlConnection(connectionString);
 		
-		var sql = since is null
-            ? "SELECT * FROM dbo.ProcessLog"
-            : "SELECT * FROM dbo.ProcessLog WHERE LogTime >= @Since";
-		return db.Query<ProcessLogEntry>(sql, new { Since = since })?.ToList();
+		return db.Query<Process>(sql, pars)?.ToList();
+    }
+
+    public static Process? GetProcess(int processId)
+    {
+        var sql = "SELECT * FROM dbo.Processes WHERE ProcessId = @ProcessId";
+
+        var pars = new DynamicParameters();
+        pars.Add("@ProcessId", processId, DbType.Int32);
+
+        using var db = new SqlConnection(connectionString);
+		
+		return db.QuerySingleOrDefault<Process>(sql, pars);
+    }
+
+    public static List<ProcessLogEntry>? GetProcessLog()
+    {
+        var sql = "SELECT * FROM dbo.ProcessLog";
+
+        using var db = new SqlConnection(connectionString);
+		
+		return db.Query<ProcessLogEntry>(sql)?.ToList();
+    }
+
+    public static List<ProcessLogEntry>? GetProcessLogSince(DateTime startTime)
+    {
+		var sql = "SELECT * FROM dbo.ProcessLog WHERE LogTime >= @StartTime";
+
+        var pars = new DynamicParameters();
+        pars.Add("@StartTime", startTime, DbType.DateTime);
+
+        using var db = new SqlConnection(connectionString);
+		
+		return db.Query<ProcessLogEntry>(sql, pars)?.ToList();
     }
 
     public static Process? GetCurrentProcess()
     {
+        var sql = "SELECT * FROM dbo.CurrentProcess";
+
         using var db = new SqlConnection(connectionString);
 		
-		return db.QuerySingleOrDefault<Process>("SELECT * FROM dbo.CurrentProcess");
+		return db.QuerySingleOrDefault<Process>(sql);
     }
 
     public static int? StartProcess()
@@ -255,31 +323,85 @@ public static class DbFixture
 
 #region  "Workers"
 
-    public static List<Worker>? GetWorkers(DateTime? since = null)
+    public static List<Worker>? GetWorkers()
     {
+        var sql = "SELECT * FROM dbo.Workers";
+    
         using var db = new SqlConnection(connectionString);
 		
-		var sql = since is null
-            ? "SELECT * FROM dbo.Workers"
-            : "SELECT * FROM dbo.Workers WHERE StartTime >= @Since";
-		return db.Query<Worker>(sql, new { Since = since })?.ToList();
+		return db.Query<Worker>(sql)?.ToList();
     }
 
-    public static List<WorkerLogEntry>? GetWorkerLog(DateTime? since = null)
+    public static List<Worker>? GetWorkersSince(DateTime startTime)
     {
+		var sql = "SELECT * FROM dbo.Workers WHERE StartTime >= @StartTime";
+
+        var pars = new DynamicParameters();
+        pars.Add("@StartTime", startTime, DbType.DateTime);
+
         using var db = new SqlConnection(connectionString);
 		
-		var sql = since is null
-            ? "SELECT * FROM dbo.WorkerLog"
-            : "SELECT * FROM dbo.WorkerLog WHERE LogTime >= @Since";
-		return db.Query<WorkerLogEntry>(sql, new { Since = since })?.ToList();
+		return db.Query<Worker>(sql, pars)?.ToList();
+    }
+
+    public static Worker? GetWorker(int operationId)
+    {
+        var sql = "SELECT * FROM dbo.Workers WHERE WorkerId = @WorkerId";
+
+        var pars = new DynamicParameters();
+        pars.Add("@WorkerId", operationId, DbType.Int32);
+
+        using var db = new SqlConnection(connectionString);
+		
+		return db.QuerySingleOrDefault<Worker>(sql, pars);
+    }
+
+    public static List<WorkerLogEntry>? GetWorkerLog()
+    {
+        var sql = "SELECT * FROM dbo.WorkerLog";
+    
+        using var db = new SqlConnection(connectionString);
+		
+		return db.Query<WorkerLogEntry>(sql)?.ToList();
+    }
+
+    public static List<WorkerLogEntry>? GetWorkerLogSince(DateTime startTime)
+    {
+		var sql = "SELECT * FROM dbo.WorkerLog WHERE LogTime >= @StartTime";
+
+        var pars = new DynamicParameters();
+        pars.Add("@StartTime", startTime, DbType.DateTime);
+
+        using var db = new SqlConnection(connectionString);
+		
+		return db.Query<WorkerLogEntry>(sql, pars)?.ToList();
     }
 
     public static List<Worker>? GetCurrentWorkers()
     {
+        var sql = "SELECT * FROM dbo.CurrentWorkers";
+
         using var db = new SqlConnection(connectionString);
 		
-		return db.Query<Worker>("SELECT * FROM dbo.CurrentWorkers")?.ToList();
+		return db.Query<Worker>(sql)?.ToList();
+    }
+
+    public static Worker GetFirstCurrentWorker()
+    {
+        var sql = "SELECT * FROM dbo.CurrentWorkers";
+    
+        using var db = new SqlConnection(connectionString);
+		
+		return db.QueryFirst<Worker>(sql);
+    }
+
+    public static Worker? GetFirstCurrentWorkerOrDefault()
+    {
+        var sql = "SELECT * FROM dbo.CurrentWorkers";
+    
+        using var db = new SqlConnection(connectionString);
+		
+		return db.QueryFirstOrDefault<Worker>(sql);
     }
 
     public static int? StartWorker()

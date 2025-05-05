@@ -26,7 +26,7 @@ public class LogErrorTest
             """);
 
         // Assert
-        var logEntries = DbFixture.GetErrorLog(startTime);
+        var logEntries = DbFixture.GetErrorLogSince(startTime);
         Assert.NotNull(logEntries);
         Assert.Single(logEntries);
         var entry = logEntries.First();
@@ -59,7 +59,7 @@ public class LogErrorTest
         DbFixture.Execute($"EXECUTE {procedureName}");
 
         // Assert
-        var logEntries = DbFixture.GetErrorLog(startTime);
+        var logEntries = DbFixture.GetErrorLogSince(startTime);
         Assert.NotNull(logEntries);
         Assert.Single(logEntries);
         var entry = logEntries.First();
@@ -87,7 +87,7 @@ public class LogErrorTest
         DbFixture.RunOperation(operationId, (int)workerId);
 
         // Assert
-        var logEntries = DbFixture.GetErrorLog(startTime);
+        var logEntries = DbFixture.GetErrorLogSince(startTime);
         Assert.NotNull(logEntries);
         Assert.Single(logEntries);
         var entry = logEntries.First();

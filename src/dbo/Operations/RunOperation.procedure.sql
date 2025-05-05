@@ -3,16 +3,16 @@ CREATE PROCEDURE dbo.RunOperation
     @WorkerId int AS
 SET XACT_ABORT, NOCOUNT ON
 BEGIN TRY
-    IF NOT EXISTS (SELECT * FROM dbo.Processes WHERE [Status] = 'STARTED')
+    IF NOT EXISTS (SELECT * FROM dbo.CurrentProcess)
         THROW 50001, 'No process is currently started.', 1;
 
-    IF NOT EXISTS (SELECT * FROM dbo.Workers WHERE WorkerId = @WorkerId)
-        THROW 50002, 'There is no worker with the given identifier.', 1;
+    IF NOT EXISTS (SELECT * FROM dbo.CurrentWorkers WHERE WorkerId = @WorkerId)
+        THROW 50002, 'There is no current worker with the given identifier.', 1;
 
-    IF NOT EXISTS (SELECT * FROM dbo.Workers WHERE WorkerId = @WorkerId AND [Status] = 'STARTED')
+    IF NOT EXISTS (SELECT * FROM dbo.CurrentWorkers WHERE WorkerId = @WorkerId AND [Status] = 'STARTED')
         THROW 50003, 'The worker with the given identifier is not started.', 1;
 
-    DECLARE @ProcessId int = (SELECT TOP(1) ProcessId FROM dbo.Workers WHERE WorkerId = @WorkerId);
+    DECLARE @ProcessId int = (SELECT TOP(1) ProcessId FROM dbo.CurrentProcess);
 
     UPDATE dbo.Operations
         SET [Status] = 'STARTED',
@@ -24,7 +24,7 @@ BEGIN TRY
             AND [Status] = 'PLANNED';
 
     IF @@ROWCOUNT = 0
-        THROW 50004, 'The operation is not ready to start.', 1;
+        THROW 50004, 'The operation is not planned to start.', 1;
 
     INSERT dbo.OperationLog (OperationId, [Status]) VALUES (@OperationId, 'STARTED');
 

@@ -2,11 +2,10 @@ CREATE PROCEDURE dbo.StartWorker
     @WorkerId int = null OUT AS
 SET XACT_ABORT, NOCOUNT ON
 BEGIN TRY
-    IF NOT EXISTS (SELECT * FROM dbo.Processes WHERE [Status] = 'STARTED')
+    IF NOT EXISTS (SELECT * FROM dbo.CurrentProcess)
         THROW 50001, 'No process is currently started.', 1;
 
-    DECLARE @ProcessId int = (
-        SELECT TOP(1) ProcessId FROM dbo.Processes WHERE [Status] = 'STARTED');
+    DECLARE @ProcessId int = (SELECT TOP(1) ProcessId FROM dbo.CurrentProcess);
 
     INSERT dbo.Workers (ProcessId, [Status]) VALUES (@ProcessId, 'STARTED');
 
