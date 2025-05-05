@@ -35,7 +35,7 @@ public class RunOperationTest : BaseProcedureTest
 
         // Assert
         AssertSingleErrorSince(startTime, "dbo.RunOperation", "There is no current worker with the given identifier.");
-        AssertNoStartedOperation();
+        AssertNoOperationStarted();
     }
 
     [Fact]
@@ -54,7 +54,7 @@ public class RunOperationTest : BaseProcedureTest
 
         // Assert
         AssertSingleErrorSince(startTime, "dbo.RunOperation", "The worker with the given identifier is not started.");
-        AssertNoStartedOperation();
+        AssertNoOperationStarted();
     }
 
     [Fact]
@@ -74,7 +74,7 @@ public class RunOperationTest : BaseProcedureTest
 
         // Assert
         AssertSingleErrorSince(startTime, "dbo.RunOperation", "The operation is not planned to start.");
-        AssertNoStartedOperation();
+        AssertNoOperationStarted();
     }
 
     [Fact]

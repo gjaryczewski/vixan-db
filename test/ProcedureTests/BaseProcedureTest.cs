@@ -70,6 +70,14 @@ public abstract class BaseProcedureTest
         Assert.Equal("STOPPED", worker.Status);
     }
 
+    public static void AssertWorkerStopped(int workerId)
+    {
+        Assert.NotNull(DbFixture.GetCurrentProcess());
+        var worker = DbFixture.GetWorkers()?.FirstOrDefault(w => w.WorkerId == workerId);
+        Assert.NotNull(worker);
+        Assert.Equal("STOPPED", worker.Status);
+    }
+
     public static void AssertNoCurrentOperation()
     {
         var currentOperations = DbFixture.GetCurrentOperations();
@@ -77,7 +85,7 @@ public abstract class BaseProcedureTest
         Assert.Empty(currentOperations);
     }
 
-    public static void AssertNoStartedOperation()
+    public static void AssertNoOperationStarted()
     {
         Assert.NotNull(DbFixture.GetCurrentProcess());
         var currentOperations = DbFixture.GetCurrentOperations();
