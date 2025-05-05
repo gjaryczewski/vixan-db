@@ -9,7 +9,7 @@ CREATE TABLE dbo.Operations (
     SessionId int NULL,
 
     CONSTRAINT CH_Operations_Status
-    CHECK ([Status] IN ('PLANNED', 'STARTED', 'COMPLETED', 'TERMINATED')),
+    CHECK ([Status] IN ('PLANNED', 'STARTED', 'COMPLETED', 'TERMINATING', 'TERMINATED')),
 
     CONSTRAINT CH_Operations_Status_Planned
     CHECK ([Status] <> 'PLANNED'

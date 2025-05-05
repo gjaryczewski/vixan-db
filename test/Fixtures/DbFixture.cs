@@ -8,7 +8,7 @@ namespace Vixan.Db.Test.Fixtures;
 
 public static class DbFixture
 {
-    const string connectionString = "Server=(localdb)\\MSSQLLocalDB;Database=vixantestdb;Integrated Security=true;";
+    const string connectionString = "Server=(localdb)\\MSSQLLocalDB;Database=vixantestdb;Integrated Security=true;Command Timeout=0";
 
     public static void Reset()
     {
@@ -76,6 +76,25 @@ public static class DbFixture
         return db.ExecuteScalar<DateTime>(sql);
     }
 
+    public static bool IsSessionActive(int operationId)
+    {
+		var sql = """
+            SELECT COUNT(*)
+            FROM sys.dm_exec_sessions
+            WHERE session_id = (
+                    SELECT SessionId
+                    FROM dbo.Operations
+                    WHERE OperationId = @OperationId)
+            """;
+
+        var pars = new DynamicParameters();
+        pars.Add("@OperationId", operationId, DbType.Int32);
+
+        using var db = new SqlConnection(connectionString);
+		
+		return 1 == db.ExecuteScalar<int>(sql, pars);
+    }
+
 #region "Errors"
 
 
@@ -136,7 +155,7 @@ public static class DbFixture
 
     public static Operation? GetOperation(int operationId)
     {
-        var sql = "SELECT * FROM dbo.Operations WHERE OperationId = @OperationId";
+        var sql = "SELECT TOP(1) * FROM dbo.Operations WHERE OperationId = @OperationId";
 
         var pars = new DynamicParameters();
         pars.Add("@OperationId", operationId, DbType.Int32);
@@ -144,18 +163,6 @@ public static class DbFixture
         using var db = new SqlConnection(connectionString);
 		
 		return db.QuerySingleOrDefault<Operation>(sql, pars);
-    }
-
-    public static string GetOperationStatus(int operationId)
-    {
-        var sql = "SELECT TOP(1) [Status] FROM dbo.Operations WHERE OperationId = @OperationId";
-
-        var pars = new DynamicParameters();
-        pars.Add("@OperationId", operationId, DbType.Int32);
-
-        using var db = new SqlConnection(connectionString);
-		
-		return db.ExecuteScalar<string?>(sql, pars) ?? string.Empty;
     }
 
     public static List<OperationLogEntry>? GetOperationLog()
@@ -205,7 +212,15 @@ public static class DbFixture
 
         using var db = new SqlConnection(connectionString);
 		
-		db.Execute("dbo.RunOperation", pars, commandType: CommandType.StoredProcedure);
+        try
+        {
+    		db.Execute("dbo.RunOperation", pars, commandType: CommandType.StoredProcedure);
+        }
+        catch (System.Data.Common.DbException ex) when (ex.Message.StartsWith("Cannot continue"))
+        {
+            // NOTE This state is expected when testing termination.
+            return;
+        }
     }
 
     public static void TerminateOperation(int operationId)
@@ -261,7 +276,7 @@ public static class DbFixture
     {
         var sql = """
             UPDATE dbo.Scripts
-            SET ScriptCode = 'WAIFOR DELAY ''01:00:00'';'
+            SET ScriptCode = 'WAITFOR DELAY ''01:00:00'';'
             WHERE ScriptName = (
                 SELECT ScriptName
                 FROM dbo.Operations

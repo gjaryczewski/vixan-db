@@ -106,7 +106,7 @@ public abstract class BaseProcedureTest
         var status = string.Empty;
         while (durationInSec < maxDurationInSec)
         {
-            status = DbFixture.GetOperationStatus(operationId);
+            status = DbFixture.GetOperation(operationId)!.Status;
             if (status == "COMPLETED") break;
 
             Task.Delay(TimeSpan.FromSeconds(1));
@@ -118,6 +118,6 @@ public abstract class BaseProcedureTest
     public static void AssertOperationTerminated(int operationId)
     {
         DbFixture.TerminateOperation(operationId);
-        Assert.Equal("TERMINATED", DbFixture.GetOperationStatus(operationId));
+        Assert.Equal("TERMINATED", DbFixture.GetOperation(operationId)!.Status);
     }
 }
