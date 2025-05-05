@@ -116,7 +116,7 @@ public static class DbFixture
     public static List<Operation>? GetOperations()
     {
         var sql = "SELECT * FROM dbo.Operations";
-    
+
         using var db = new SqlConnection(connectionString);
 		
 		return db.Query<Operation>(sql)?.ToList();
@@ -144,6 +144,18 @@ public static class DbFixture
         using var db = new SqlConnection(connectionString);
 		
 		return db.QuerySingleOrDefault<Operation>(sql, pars);
+    }
+
+    public static string GetOperationStatus(int operationId)
+    {
+        var sql = "SELECT TOP(1) [Status] FROM dbo.Operations WHERE OperationId = @OperationId";
+
+        var pars = new DynamicParameters();
+        pars.Add("@OperationId", operationId, DbType.Int32);
+
+        using var db = new SqlConnection(connectionString);
+		
+		return db.ExecuteScalar<string?>(sql, pars) ?? string.Empty;
     }
 
     public static List<OperationLogEntry>? GetOperationLog()
@@ -220,6 +232,44 @@ public static class DbFixture
         var pars = new DynamicParameters();
         pars.Add("@OperationId", operationId, DbType.Int32);
         pars.Add("@ScriptCode", scriptCode, DbType.String);
+
+        using var db = new SqlConnection(connectionString);
+		
+		db.Execute(sql, pars);
+    }
+
+    public static void MakeOperationFast(int operationId)
+    {
+        var sql = """
+            UPDATE dbo.Scripts
+            SET ScriptCode = 'DECLARE @N int = 1;'
+            WHERE ScriptName = (
+                SELECT ScriptName
+                FROM dbo.Operations
+                WHERE OperationId = @OperationId)
+            """;
+
+        var pars = new DynamicParameters();
+        pars.Add("@OperationId", operationId, DbType.Int32);
+
+        using var db = new SqlConnection(connectionString);
+		
+		db.Execute(sql, pars);
+    }
+
+    public static void MakeOperationSlow(int operationId)
+    {
+        var sql = """
+            UPDATE dbo.Scripts
+            SET ScriptCode = 'WAIFOR DELAY ''01:00:00'';'
+            WHERE ScriptName = (
+                SELECT ScriptName
+                FROM dbo.Operations
+                WHERE OperationId = @OperationId)
+            """;
+
+        var pars = new DynamicParameters();
+        pars.Add("@OperationId", operationId, DbType.Int32);
 
         using var db = new SqlConnection(connectionString);
 		
@@ -326,7 +376,7 @@ public static class DbFixture
     public static List<Worker>? GetWorkers()
     {
         var sql = "SELECT * FROM dbo.Workers";
-    
+
         using var db = new SqlConnection(connectionString);
 		
 		return db.Query<Worker>(sql)?.ToList();
@@ -359,7 +409,7 @@ public static class DbFixture
     public static List<WorkerLogEntry>? GetWorkerLog()
     {
         var sql = "SELECT * FROM dbo.WorkerLog";
-    
+
         using var db = new SqlConnection(connectionString);
 		
 		return db.Query<WorkerLogEntry>(sql)?.ToList();
@@ -389,7 +439,7 @@ public static class DbFixture
     public static Worker GetFirstCurrentWorker()
     {
         var sql = "SELECT * FROM dbo.CurrentWorkers";
-    
+
         using var db = new SqlConnection(connectionString);
 		
 		return db.QueryFirst<Worker>(sql);
@@ -398,7 +448,7 @@ public static class DbFixture
     public static Worker? GetFirstCurrentWorkerOrDefault()
     {
         var sql = "SELECT * FROM dbo.CurrentWorkers";
-    
+
         using var db = new SqlConnection(connectionString);
 		
 		return db.QueryFirstOrDefault<Worker>(sql);

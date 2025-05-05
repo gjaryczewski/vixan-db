@@ -24,7 +24,7 @@ BEGIN TRY
         FROM dbo.Operations
         WHERE WorkerId = @WorkerId
             AND [Status] = 'STARTED');
-    DECLARE @I int = 0; 
+    DECLARE @I int = 0;
     WHILE @StartedOperationId IS NOT NULL AND @I < @StartedOperationCount
     BEGIN
         SET @StartedOperationId = (

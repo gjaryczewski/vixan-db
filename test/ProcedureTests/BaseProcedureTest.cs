@@ -96,4 +96,28 @@ public abstract class BaseProcedureTest
         var startedOperations = currentOperations.Where(o => o.Status == "STARTED");
         Assert.Empty(startedOperations);
     }
+
+    public static void AssertOperationCompleted(int operationId, int maxDurationInSec = 10)
+    {
+        AssertWorkerStarted();
+        var workerId = DbFixture.GetFirstCurrentWorker().WorkerId;
+        DbFixture.RunOperation(operationId, (int)workerId);
+        var durationInSec = 0;
+        var status = string.Empty;
+        while (durationInSec < maxDurationInSec)
+        {
+            status = DbFixture.GetOperationStatus(operationId);
+            if (status == "COMPLETED") break;
+
+            Task.Delay(TimeSpan.FromSeconds(1));
+            durationInSec++;
+        }
+        Assert.Equal("COMPLETED", status);
+    }
+
+    public static void AssertOperationTerminated(int operationId)
+    {
+        DbFixture.TerminateOperation(operationId);
+        Assert.Equal("TERMINATED", DbFixture.GetOperationStatus(operationId));
+    }
 }

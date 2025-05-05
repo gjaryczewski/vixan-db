@@ -20,7 +20,7 @@ public class StartProcessTest : BaseProcedureTest
         Assert.Null(processId);
         AssertSingleErrorSince(startTime, "dbo.StartProcess", "Another process is already started.");
     }
-    
+
     [Fact]
     public void StartProcess_Plans_Operations_When_Starting()
     {

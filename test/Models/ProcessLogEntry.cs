@@ -3,7 +3,7 @@ namespace Vixan.Db.Test.Models;
 public class ProcessLogEntry
 {
     public int ProcessLogId { get; set; }
-    
+
     public DateTime LogTime { get; set; }
 
     public int ProcessId { get; set; }

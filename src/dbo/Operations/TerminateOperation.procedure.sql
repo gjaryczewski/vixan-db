@@ -8,8 +8,11 @@ BEGIN TRY
     IF NOT EXISTS (SELECT * FROM dbo.CurrentOperations WHERE OperationId = @OperationId)
         THROW 50002, 'There is no current operation with the given identifier.', 1;
 
-    IF EXISTS (SELECT * FROM dbo.CurrentOperations WHERE OperationId = @OperationId AND [Status] IN ('COMPLETED', 'TERMINATED'))
-        THROW 50003, 'The operation is already completed or terminated.', 1;
+    IF EXISTS (SELECT * FROM dbo.CurrentOperations WHERE OperationId = @OperationId AND [Status] IN ('TERMINATED'))
+        THROW 50003, 'The operation is already terminated.', 1;
+
+    IF EXISTS (SELECT * FROM dbo.CurrentOperations WHERE OperationId = @OperationId AND [Status] IN ('COMPLETED'))
+        THROW 50004, 'The operation is already completed.', 1;
 
     IF EXISTS (SELECT * FROM dbo.CurrentOperations WHERE OperationId = @OperationId AND [Status] = 'STARTED')
     BEGIN
@@ -18,7 +21,7 @@ BEGIN TRY
         INSERT dbo.OperationLog (OperationId, [Status]) VALUES (@OperationId, 'TERMINATING');
 
         DECLARE @SessionId int = (SELECT TOP(1) SessionId FROM dbo.Operations WHERE OperationId = @OperationId);
-        IF EXISTS (SELECT * FROM sys.dm_exec_sessions WHERE [session_id] = @SessionId) 
+        IF EXISTS (SELECT * FROM sys.dm_exec_sessions WHERE [session_id] = @SessionId)
         BEGIN
             DECLARE @KillScript varchar(100) = CONCAT('KILL ', @SessionId);
             EXECUTE (@KillScript);
@@ -26,8 +29,8 @@ BEGIN TRY
 
         WAITFOR DELAY '00:00:01';
 
-        IF EXISTS (SELECT * FROM sys.dm_exec_sessions WHERE [session_id] = @SessionId) 
-            THROW 5004, 'The session assigned to the operation cannot be properly terminated.', 1;
+        IF EXISTS (SELECT * FROM sys.dm_exec_sessions WHERE [session_id] = @SessionId)
+            THROW 5005, 'The session assigned to the operation cannot be properly terminated.', 1;
     END
 
     UPDATE dbo.Operations SET [Status] = 'TERMINATED' WHERE OperationId = @OperationId;

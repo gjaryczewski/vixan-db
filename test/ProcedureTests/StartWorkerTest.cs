@@ -12,7 +12,7 @@ public class StartWorkerTest : BaseProcedureTest
         DbFixture.Reset();
         AssertNoCurrentProcess();
         var startTime = DbFixture.GetTimeUc();
-    
+
         // Act
         var workerId = DbFixture.StartWorker();
 
@@ -21,7 +21,7 @@ public class StartWorkerTest : BaseProcedureTest
         AssertSingleErrorSince(startTime, "dbo.StartWorker", "No process is currently started.");
         AssertNoCurrentWorkers();
     }
-    
+
     [Fact]
     public void StartWorker_Starts_Worker_When_Process_Started()
     {
@@ -30,7 +30,7 @@ public class StartWorkerTest : BaseProcedureTest
         AssertProcessStarted();
         AssertNoCurrentWorkers();
         var startTime = DbFixture.GetTimeUc();
-    
+
         // Act
         var workerId = DbFixture.StartWorker();
 
@@ -39,7 +39,7 @@ public class StartWorkerTest : BaseProcedureTest
         AssertNoErrorSince(startTime);
         AssertWorkerStarted((int)workerId);
     }
-    
+
     [Fact]
     public void StartWorker_Can_Be_Executed_Multiple_Times()
     {
@@ -49,7 +49,7 @@ public class StartWorkerTest : BaseProcedureTest
         AssertNoCurrentWorkers();
         var workersCount = new Random().Next(3, 6);
         var startTime = DbFixture.GetTimeUc();
-    
+
         // Act
         for (var i = 0; i < workersCount; i++)
         {

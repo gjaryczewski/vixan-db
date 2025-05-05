@@ -3,7 +3,7 @@ namespace Vixan.Db.Test.Models;
 public class WorkerLogEntry
 {
     public int WorkerLogId { get; set; }
-    
+
     public DateTime LogTime { get; set; }
 
     public int WorkerId { get; set; }

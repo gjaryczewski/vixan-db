@@ -12,7 +12,7 @@ public class RunOperationTest : BaseProcedureTest
         DbFixture.Reset();
         AssertNoCurrentProcess();
         var startTime = DbFixture.GetTimeUc();
-    
+
         // Act
         DbFixture.RunOperation(1, 1);
 
@@ -29,7 +29,7 @@ public class RunOperationTest : BaseProcedureTest
         AssertProcessStarted();
         var operationId = DbFixture.NextOperationToRun();
         var startTime = DbFixture.GetTimeUc();
-    
+
         // Act
         DbFixture.RunOperation(operationId, 1);
 
@@ -48,7 +48,7 @@ public class RunOperationTest : BaseProcedureTest
         var workerId = DbFixture.GetFirstCurrentWorker().WorkerId;
         var operationId = DbFixture.NextOperationToRun();
         var startTime = DbFixture.GetTimeUc();
-    
+
         // Act
         DbFixture.RunOperation(operationId, (int)workerId);
 
@@ -68,7 +68,7 @@ public class RunOperationTest : BaseProcedureTest
         var operationId = DbFixture.NextOperationToRun();
         DbFixture.TerminateOperation(operationId);
         var startTime = DbFixture.GetTimeUc();
-    
+
         // Act
         DbFixture.RunOperation(operationId, (int)workerId);
 
@@ -87,7 +87,7 @@ public class RunOperationTest : BaseProcedureTest
         var workerId = DbFixture.GetFirstCurrentWorker().WorkerId;
         var operationId = DbFixture.NextOperationToRun();
         var startTime = DbFixture.GetTimeUc();
-    
+
         // Act
         DbFixture.RunOperation(operationId, (int)workerId);
 

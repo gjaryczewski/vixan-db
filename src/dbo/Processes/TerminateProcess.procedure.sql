@@ -12,7 +12,7 @@ BEGIN TRY
 
     DECLARE @WorkerId int = 0;
     DECLARE @WorkerCount int = (SELECT COUNT(*) FROM dbo.Workers WHERE ProcessId = @ProcessId);
-    DECLARE @I int = 0; 
+    DECLARE @I int = 0;
     WHILE @WorkerId IS NOT NULL AND @I < @WorkerCount
     BEGIN
         SET @WorkerId = (
@@ -35,7 +35,7 @@ BEGIN TRY
         FROM dbo.Operations
         WHERE ProcessId = @ProcessId
             AND [Status] = 'PLANNED');
-    SET @I = 0; 
+    SET @I = 0;
     WHILE @PlannedOperationId IS NOT NULL AND @I < @PlannedOperationCount
     BEGIN
         SET @PlannedOperationId = (
