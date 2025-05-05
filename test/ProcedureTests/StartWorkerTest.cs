@@ -23,7 +23,7 @@ public class StartWorkerTest : BaseProcedureTest
     }
     
     [Fact]
-    public void StartWorker_Registers_Worker_When_Process_Started()
+    public void StartWorker_Starts_Worker_When_Process_Started()
     {
         // Arrange
         DbFixture.Reset();
@@ -37,7 +37,7 @@ public class StartWorkerTest : BaseProcedureTest
         // Assert
         Assert.NotNull(workerId);
         AssertNoErrorSince(startTime);
-        AssertWorkerRegistered((int)workerId);
+        AssertWorkerStarted((int)workerId);
     }
     
     [Fact]

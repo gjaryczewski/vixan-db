@@ -43,15 +43,15 @@ public abstract class BaseProcedureTest
         Assert.Empty(currentWorkers);
     }
 
-    public static void AssertWorkerRegistered()
+    public static void AssertWorkerStarted()
     {
         Assert.NotNull(DbFixture.GetCurrentProcess());
         var workerId = DbFixture.StartWorker();
         Assert.NotNull(workerId);
-        AssertWorkerRegistered((int)workerId);
+        AssertWorkerStarted((int)workerId);
     }
 
-    public static void AssertWorkerRegistered(int workerId)
+    public static void AssertWorkerStarted(int workerId)
     {
         Assert.NotNull(DbFixture.GetCurrentProcess());
         var worker = DbFixture.GetWorkers()?.FirstOrDefault(w => w.WorkerId == workerId);
@@ -59,7 +59,7 @@ public abstract class BaseProcedureTest
         Assert.Equal("STARTED", worker.Status);
     }
 
-    public static void AssertWorkerRegisteredThenStopped()
+    public static void AssertWorkerStartedThenStopped()
     {
         Assert.NotNull(DbFixture.GetCurrentProcess());
         var workerId = DbFixture.StartWorker();

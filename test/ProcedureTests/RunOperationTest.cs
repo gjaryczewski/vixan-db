@@ -22,7 +22,7 @@ public class RunOperationTest : BaseProcedureTest
     }
 
     [Fact]
-    public void RunOperation_Breaks_When_Worker_Not_Registered()
+    public void RunOperation_Breaks_When_Worker_Undefined()
     {
         // Arrange
         DbFixture.Reset();
@@ -44,7 +44,7 @@ public class RunOperationTest : BaseProcedureTest
         // Arrange
         DbFixture.Reset();
         AssertProcessStarted();
-        AssertWorkerRegisteredThenStopped();
+        AssertWorkerStartedThenStopped();
         var workerId = DbFixture.GetFirstCurrentWorker().WorkerId;
         var operationId = DbFixture.NextOperationToRun();
         var startTime = DbFixture.GetTimeUc();
@@ -63,7 +63,7 @@ public class RunOperationTest : BaseProcedureTest
         // Arrange
         DbFixture.Reset();
         AssertProcessStarted();
-        AssertWorkerRegistered();
+        AssertWorkerStarted();
         var workerId = DbFixture.GetFirstCurrentWorker().WorkerId;
         var operationId = DbFixture.NextOperationToRun();
         DbFixture.TerminateOperation(operationId);
@@ -78,12 +78,12 @@ public class RunOperationTest : BaseProcedureTest
     }
 
     [Fact]
-    public void RunOperation_Runs_Planned_Operation_With_Registered_Worker()
+    public void RunOperation_Runs_Planned_Operation_With_Started_Worker()
     {
         // Arrange
         DbFixture.Reset();
         AssertProcessStarted();
-        AssertWorkerRegistered();
+        AssertWorkerStarted();
         var workerId = DbFixture.GetFirstCurrentWorker().WorkerId;
         var operationId = DbFixture.NextOperationToRun();
         var startTime = DbFixture.GetTimeUc();
