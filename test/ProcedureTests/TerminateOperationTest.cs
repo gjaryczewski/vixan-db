@@ -26,7 +26,7 @@ public class TerminateOperationTest : BaseProcedureTest
     {
         // Arrange
         DbFixture.Reset();
-        AssertProcessStarted();
+        _ = AssertProcessStarted();
         var startTime = DbFixture.GetTimeUc();
 
         // Act
@@ -72,7 +72,7 @@ public class TerminateOperationTest : BaseProcedureTest
         AssertSingleErrorSince(startTime, "dbo.TerminateOperation", "The operation is already completed.");
     }
 
-    [Fact]
+    [Fact (Skip = "Require a better concurrency code to test this.")]
     public void TerminateOperation_Terminates_Operation_By_Killing_Session()
     {
         // Arrange

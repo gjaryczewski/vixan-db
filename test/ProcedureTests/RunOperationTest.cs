@@ -82,7 +82,7 @@ public class RunOperationTest : BaseProcedureTest
     {
         // Arrange
         DbFixture.Reset();
-        AssertProcessStarted();
+        _ = AssertProcessStarted();
         AssertWorkerStarted();
         var workerId = DbFixture.GetFirstCurrentWorker().WorkerId;
         var operationId = DbFixture.NextOperationToRun();

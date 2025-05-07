@@ -4,6 +4,8 @@ namespace Vixan.Db.Test.ProcedureTests;
 
 public abstract class BaseProcedureTest
 {
+    #region "Error Assertions"
+
     public static void AssertNoErrorSince(DateTime startTime)
     {
         var logEntries = DbFixture.GetErrorLogSince(startTime);
@@ -22,19 +24,29 @@ public abstract class BaseProcedureTest
             new { entry.ProcedureName, entry.ErrorMessage });
     }
 
+    #endregion "Error Assertions"
+
+    #region "Process Assertions"
+
     public static void AssertNoCurrentProcess()
     {
         Assert.Null(DbFixture.GetCurrentProcess());
     }
 
-    public static void AssertProcessStarted()
+    public static int AssertProcessStarted()
     {
         Assert.Null(DbFixture.GetCurrentProcess());
-        DbFixture.StartProcess();
+        var processId = DbFixture.StartProcess();
+        Assert.NotNull(processId);
         var process = DbFixture.GetCurrentProcess();
         Assert.NotNull(process);
         Assert.Equal("STARTED", process.Status);
+        return processId!.Value;
     }
+
+    #endregion "Process Assertions"
+
+    #region "Worker Assertions"
 
     public static void AssertNoCurrentWorkers()
     {
@@ -77,6 +89,10 @@ public abstract class BaseProcedureTest
         Assert.NotNull(worker);
         Assert.Equal("STOPPED", worker.Status);
     }
+
+    #endregion "Worker Assertions"
+
+    #region "Operation Assertions"
 
     public static void AssertNoCurrentOperation()
     {
@@ -128,4 +144,6 @@ public abstract class BaseProcedureTest
         DbFixture.TerminateOperation(operationId);
         Assert.Equal("TERMINATED", DbFixture.GetOperation(operationId)!.Status);
     }
+
+    #endregion "Operation Assertions"
 }

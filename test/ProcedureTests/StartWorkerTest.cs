@@ -27,7 +27,7 @@ public class StartWorkerTest : BaseProcedureTest
     {
         // Arrange
         DbFixture.Reset();
-        AssertProcessStarted();
+        _ = AssertProcessStarted();
         AssertNoCurrentWorkers();
         var startTime = DbFixture.GetTimeUc();
 

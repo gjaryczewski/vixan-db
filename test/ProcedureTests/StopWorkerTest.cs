@@ -26,7 +26,7 @@ public class StopWorkerTest : BaseProcedureTest
     {
         // Arrange
         DbFixture.Reset();
-        AssertProcessStarted();
+        _ = AssertProcessStarted();
         AssertNoOperationStarted();
         AssertWorkerStarted();
         var workerId = DbFixture.GetFirstCurrentWorker().WorkerId;
